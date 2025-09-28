@@ -271,6 +271,8 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  min-height: 120px;
+  max-height: 200px;
 }
 
 .add-photo-item:hover {

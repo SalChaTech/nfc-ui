@@ -1,11 +1,10 @@
 <template>
-  <div class="d-flex justify-center align-center" style="position: relative;">
-    <v-img
-      height="80vh"
+  <div class="hero-container">
+    <img
       :src="currentImage"
-      cover
       @click="triggerImageUpload"
-      class="clickable-image"
+      class="hero-image"
+      alt="Hero Image"
     >
       <!-- Overlay içerik -->
       <div class="invitation-container">
@@ -72,8 +71,7 @@
           <div class="decorative-line"></div>
         </div>
       </div>
-    </v-img>
-  </div>
+    </div>
 </template>
 
 <script setup>
@@ -189,12 +187,22 @@ const selectAllText = (element) => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
-.clickable-image {
+.hero-container {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.clickable-image:hover {
+.hero-image:hover {
   transform: scale(1.01);
   filter: brightness(1.1);
 }

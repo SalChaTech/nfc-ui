@@ -232,6 +232,8 @@ function handleVideoClick(event: Event) {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  min-height: 200px;
+  max-height: 400px;
 }
 
 .video-upload-area:hover {
