@@ -4,7 +4,6 @@ import LoginPage from '@/components/LoginPage.vue'
 import UploadMemory from '@/views/UploadMemory.vue'
 
 const routes = [
-  { path: '/', redirect: '/upload-memory' },
   { path: '/login', name: 'Login', component: LoginPage },
   { path: '/upload-memory', name: UploadMemory, component: UploadMemory},
 ]
