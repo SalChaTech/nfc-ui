@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="items-center justify-center flex-1">
     <UploadPhoto/>
   </div>
 </template>
