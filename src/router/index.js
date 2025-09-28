@@ -1,10 +1,12 @@
 // router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '@/components/LoginPage.vue'
+import UploadMemory from '@/views/UploadMemory.vue'
 
 const routes = [
-  { path: '/', name: 'Login', component: LoginPage },
-  { path: '/editor', name: 'TemplateEditor', component: () => import('@/views/TemplateEditor.vue') }
+  { path: '/', redirect: '/upload-memory' },
+  { path: '/login', name: 'Login', component: LoginPage },
+  { path: '/upload-memory', name: UploadMemory, component: UploadMemory},
 ]
 
 const router = createRouter({
