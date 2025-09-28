@@ -5,8 +5,11 @@
         cols="14"
         md="4" class="mx-auto"
       >
-      <HeroSection/>
-        <SpecialGallerySection />
+        <HeroSection></HeroSection>
+        <SpecialGallerySection></SpecialGallerySection>
+        <SaidYesVideoSection></SaidYesVideoSection>
+        <CounterSection></CounterSection>
+        <CommonGalerySection></CommonGalerySection>
       </v-col>
     </v-row>
   </v-container>
@@ -15,6 +18,9 @@
 <script setup lang="ts">
 import HeroSection from '../components/HeroSection.vue'
 import SpecialGallerySection from '../components/SpecialGallerySection.vue'
+import CommonGalerySection from '@/components/CommonGalerySection.vue'
+import SaidYesVideoSection from '@/components/SaidYesVideoSection.vue'
+import CounterSection from '@/components/CounterSection.vue'
 </script>
 
 <style scoped>
