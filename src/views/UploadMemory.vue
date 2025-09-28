@@ -1,18 +1,11 @@
 <template>
-  <v-container fluid class="pa-0" style="display: flex;justify-content: center;">
-    <v-row>
-      <v-col
-        cols="14"
-        md="4" class="mx-auto"
-      >
-        <HeroSection></HeroSection>
-        <SpecialGallerySection></SpecialGallerySection>
-        <SaidYesVideoSection></SaidYesVideoSection>
-        <CounterSection></CounterSection>
-        <CommonGalerySection></CommonGalerySection>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="page-container">
+    <HeroSection></HeroSection>
+    <SpecialGallerySection></SpecialGallerySection>
+    <SaidYesVideoSection></SaidYesVideoSection>
+    <CounterSection></CounterSection>
+    <CommonGalerySection></CommonGalerySection>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -24,12 +17,30 @@ import CounterSection from '@/components/CounterSection.vue'
 </script>
 
 <style scoped>
+.page-container {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+}
 
+/* Component arası boşlukları kaldır ve arka planları sıfırla */
+.page-container > * {
+  margin: 0;
+  border-radius: 0;
+  background: transparent !important;
+}
+
+/* İlk component hariç üst margin ekle */
+.page-container > *:not(:first-child) {
+  margin-top: 0;
+}
 
 /* Mobil uyumluluk için */
 @media (max-width: 768px) {
   .page-container {
-    padding: 0 1rem;
+    padding: 0;
   }
 }
 </style>

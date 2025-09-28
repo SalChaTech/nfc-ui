@@ -71,14 +71,12 @@ onUnmounted(() => {
 
 /* Sayaç bölümü */
 .counter-section {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  border-radius: 20px;
-  padding: 40px 30px;
-  margin: 30px auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 60px 40px;
+  margin: 0;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.8);
   max-width: 900px;
+  margin: 0 auto;
 }
 
 .counter-title h2 {
@@ -144,7 +142,7 @@ onUnmounted(() => {
 /* Responsive tasarım */
 @media (max-width: 768px) {
   .counter-section {
-    padding: 30px 20px;
+    padding: 40px 20px;
   }
 
   .counter-title h2 {
@@ -164,7 +162,7 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .counter-section {
-    padding: 25px 15px;
+    padding: 30px 15px;
   }
 
   .counter-title h2 {

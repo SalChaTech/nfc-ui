@@ -1,12 +1,10 @@
 <template>
   <div class="gallery-container mt-4">
-    <!-- Fotoğraf galerisi -->
-    <div class="elegant-collage">
-      <!-- Ana büyük fotoğraf (sol taraf) -->
-      <div class="main-photo" @click="itemClickHandler(photos[0], 0)">
-        <img :src="photos[0].source" alt="Ana düğün fotoğrafı" />
-        <div class="photo-border"></div>
-      </div>
+    <!-- Ana büyük fotoğraf (sol taraf) -->
+    <div class="main-photo" @click="itemClickHandler(photos[0], 0)">
+      <img :src="photos[0].source" alt="Ana düğün fotoğrafı" />
+      <div class="photo-border"></div>
+    </div>
 
     <!-- Sağ taraf fotoğrafları -->
     <div class="right-photos">
@@ -22,8 +20,6 @@
         <div class="photo-border"></div>
       </div>
     </div>
-    </div>
-
   </div>
 
 </template>
@@ -46,20 +42,11 @@ function itemClickHandler(photo: any, index: number) {
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 .gallery-container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-
-.elegant-collage {
   position: relative;
   max-width: 900px;
   margin: 0 auto;
   padding: 60px 40px;
-  background: #fefefe;
-  border-radius: 25px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  background: transparent;
   display: flex;
   gap: 30px;
   align-items: flex-start;
@@ -196,8 +183,7 @@ function itemClickHandler(photo: any, index: number) {
 
 /* Responsive tasarım - solda bir, sağda iki fotoğraf */
 @media (max-width: 768px) {
-
-  .elegant-collage {
+  .gallery-container {
     padding: 25px 15px;
     gap: 15px;
     max-width: 100%;
@@ -221,8 +207,7 @@ function itemClickHandler(photo: any, index: number) {
 }
 
 @media (max-width: 480px) {
-
-  .elegant-collage {
+  .gallery-container {
     padding: 20px 10px;
     gap: 12px;
   }
@@ -245,7 +230,7 @@ function itemClickHandler(photo: any, index: number) {
 
 /* Çok küçük ekranlar için */
 @media (max-width: 360px) {
-  .elegant-collage {
+  .gallery-container {
     padding: 15px 8px;
     gap: 10px;
   }

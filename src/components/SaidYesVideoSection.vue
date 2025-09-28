@@ -94,9 +94,8 @@ function handleVideoClick(event: Event) {
       <!-- Video yükleme alanı -->
       <div v-else class="video-upload-area" @click="triggerVideoUpload">
         <div class="upload-content">
-          <div class="upload-icon">🎥</div>
+          <div class="upload-icon">+</div>
           <div class="upload-text">Video Yükle</div>
-          <div class="upload-subtitle">Ölümsüz anınızı paylaşın</div>
         </div>
       </div>
       
@@ -257,15 +256,8 @@ function handleVideoClick(event: Event) {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   color: #495057;
-}
-
-.upload-subtitle {
-  font-size: 1.1rem;
-  opacity: 0.8;
-  font-weight: 300;
-  color: #6c757d;
 }
 
 @keyframes pulse {
@@ -364,10 +356,6 @@ function handleVideoClick(event: Event) {
   
   .upload-text {
     font-size: 1.5rem;
-  }
-  
-  .upload-subtitle {
-    font-size: 1rem;
   }
 }
 
