@@ -97,7 +97,7 @@ onUnmounted(() => {
 }
 
 .counter-digit {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
   font-family: 'Playfair Display', serif;
   font-size: 3rem;
@@ -108,7 +108,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -127,7 +127,7 @@ onUnmounted(() => {
 
 .counter-digit:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 12px 35px rgba(231, 76, 60, 0.4);
 }
 
 .counter-title h3 {

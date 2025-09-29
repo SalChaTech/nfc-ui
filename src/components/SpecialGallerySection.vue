@@ -22,6 +22,15 @@
     </div>
   </div>
 
+  <!-- Gizli dosya input -->
+  <input
+    type="file"
+    ref="photoInputRef"
+    @change="handlePhotoChange"
+    accept="image/*"
+    style="display: none;"
+  />
+
 </template>
 
 <script setup lang="ts">
@@ -33,8 +42,25 @@ const photos = ref([
   { source: 'https://images.unsplash.com/photo-1521024221340-efe7d7fa239b?auto=format&fit=crop&w=750&q=80' }
 ])
 
+const photoInputRef = ref(null)
+
 function itemClickHandler(photo: any, index: number) {
-  alert(`Fotoğraf ${index + 1} seçildi!`)
+  // Fotoğraf değiştirme için input'u tetikle
+  if (photoInputRef.value) {
+    photoInputRef.value.click()
+  }
+}
+
+function handlePhotoChange(event: any) {
+  const file = event.target.files[0]
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader()
+    reader.onload = (e: any) => {
+      // İlk fotoğrafı değiştir (index 0)
+      photos.value[0].source = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
 }
 </script>
 

@@ -44,6 +44,12 @@ import CounterSection from '@/components/CounterSection.vue'
   background: transparent !important;
 }
 
+/* Hero section yüksekliği */
+.page-container > *:first-child {
+  height: 75vh;
+  min-height: 75vh;
+}
+
 /* İlk component hariç üst margin ekle */
 .page-container > *:not(:first-child) {
   margin-top: 0;
