@@ -107,11 +107,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 8px 8px 12px 12px;
   box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
 }
 
 .counter-digit::before {
@@ -122,7 +123,21 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-  border-radius: 12px;
+  border-radius: 8px 8px 12px 12px;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+}
+
+.counter-digit::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 .counter-digit:hover {
@@ -153,6 +168,19 @@ onUnmounted(() => {
     width: 50px;
     height: 65px;
     font-size: 2.5rem;
+    border-radius: 6px 6px 10px 10px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+  }
+
+  .counter-digit::before {
+    border-radius: 6px 6px 10px 10px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+  }
+
+  .counter-digit::after {
+    top: 6px;
+    width: 6px;
+    height: 6px;
   }
 
   .counter-title h3 {
@@ -173,6 +201,19 @@ onUnmounted(() => {
     width: 45px;
     height: 60px;
     font-size: 2rem;
+    border-radius: 5px 5px 8px 8px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+  }
+
+  .counter-digit::before {
+    border-radius: 5px 5px 8px 8px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+  }
+
+  .counter-digit::after {
+    top: 5px;
+    width: 5px;
+    height: 5px;
   }
 
   .counter-title h3 {
