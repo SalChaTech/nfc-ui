@@ -104,10 +104,7 @@ onUnmounted(() => {
       
       <!-- Resim ekle butonu -->
       <div class="add-photo-item" @click="triggerImageUpload">
-        <div class="add-photo-content">
-          <div class="add-icon">+</div>
-          <div class="add-text">Resim Ekle</div>
-        </div>
+        <div class="add-icon">+</div>
       </div>
     </div>
     
@@ -161,8 +158,8 @@ onUnmounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 .common-gallery {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 40px 20px;
 }
 
@@ -185,7 +182,14 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  align-items: stretch;
 }
+
+/* Hiç fotoğraf yokken tek item olduğunda da 3 sütunlu grid korunsun */
+.gallery-grid:has(.add-photo-item:only-child) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 
 .gallery-item {
   position: relative;
@@ -196,6 +200,8 @@ onUnmounted(() => {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
   background: white;
+  width: 100%;
+  height: 100%;
 }
 
 .gallery-item:hover {
@@ -271,8 +277,8 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  min-height: 120px;
-  max-height: 200px;
+  width: 100%;
+  height: 100%;
 }
 
 .add-photo-item:hover {
@@ -282,31 +288,16 @@ onUnmounted(() => {
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 }
 
-.add-photo-content {
-  text-align: center;
-  color: #6c757d;
-  transition: all 0.3s ease;
-}
-
-.add-photo-item:hover .add-photo-content {
-  color: #667eea;
-}
-
 .add-icon {
   font-size: 3rem;
   font-weight: 300;
-  margin-bottom: 10px;
+  color: #6c757d;
   transition: all 0.3s ease;
 }
 
 .add-photo-item:hover .add-icon {
   transform: scale(1.1);
-}
-
-.add-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  font-weight: 500;
+  color: #667eea;
 }
 
 /* Fotoğraf modal */
@@ -430,6 +421,7 @@ onUnmounted(() => {
   .gallery-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
+    align-items: start;
   }
   
   .gallery-header h2 {
@@ -439,16 +431,24 @@ onUnmounted(() => {
   .add-icon {
     font-size: 2.5rem;
   }
-  
-  .add-text {
-    font-size: 1rem;
+
+  .gallery-item {
+    width: 100%;
+    height: 100%;
   }
+
+  .add-photo-item {
+    width: 100%;
+    height: 100%;
+  }
+
 }
 
 @media (max-width: 480px) {
   .gallery-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    align-items: start;
   }
   
   .gallery-header h2 {
@@ -459,19 +459,27 @@ onUnmounted(() => {
     font-size: 2rem;
   }
   
-  .add-text {
-    font-size: 0.9rem;
-  }
-  
   .common-gallery {
     padding: 30px 15px;
   }
+
+  .gallery-item {
+    width: 100%;
+    height: 100%;
+  }
+
+  .add-photo-item {
+    width: 100%;
+    height: 100%;
+  }
+
 }
 
 /* Çok küçük ekranlar için */
 @media (max-width: 360px) {
   .gallery-grid {
     gap: 6px;
+    align-items: start;
   }
   
   .gallery-header h2 {
@@ -481,9 +489,16 @@ onUnmounted(() => {
   .add-icon {
     font-size: 1.8rem;
   }
-  
-  .add-text {
-    font-size: 0.8rem;
+
+  .gallery-item {
+    width: 100%;
+    height: 100%;
   }
+
+  .add-photo-item {
+    width: 100%;
+    height: 100%;
+  }
+
 }
 </style>

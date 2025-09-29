@@ -45,11 +45,12 @@ function itemClickHandler(photo: any, index: number) {
   position: relative;
   max-width: 900px;
   margin: 0 auto;
-  padding: 60px 40px;
+  padding: 60px 20px;
   background: transparent;
   display: flex;
   gap: 30px;
   align-items: flex-start;
+  justify-content: space-between;
 }
 
 /* Ana büyük fotoğraf (sol taraf) */
@@ -62,6 +63,8 @@ function itemClickHandler(photo: any, index: number) {
   overflow: hidden;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
   transition: all 0.4s ease;
+  align-self: flex-start;
+  margin: 0;
 }
 
 .main-photo:hover {
@@ -104,6 +107,8 @@ function itemClickHandler(photo: any, index: number) {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-self: flex-end;
+  margin: 0;
 }
 
 /* Üst sağ fotoğraf */
@@ -115,6 +120,7 @@ function itemClickHandler(photo: any, index: number) {
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
+  margin: 0;
 }
 
 .top-photo:hover {
@@ -142,6 +148,7 @@ function itemClickHandler(photo: any, index: number) {
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
+  margin: 0;
 }
 
 .bottom-photo:hover {
@@ -187,17 +194,23 @@ function itemClickHandler(photo: any, index: number) {
     padding: 25px 15px;
     gap: 15px;
     max-width: 100%;
+    align-items: stretch;
     /* Layout korunuyor: flexbox ile sol-sağ düzen */
   }
 
   .main-photo {
     flex: 0 0 50%; /* Sol taraf %50 */
     height: 280px;
+    align-self: stretch;
   }
 
   .right-photos {
     flex: 0 0 45%; /* Sağ taraf %45 */
     gap: 12px;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .top-photo,
@@ -210,16 +223,22 @@ function itemClickHandler(photo: any, index: number) {
   .gallery-container {
     padding: 20px 10px;
     gap: 12px;
+    align-items: stretch;
   }
 
   .main-photo {
     flex: 0 0 55%; /* Mobilde biraz daha büyük */
     height: 220px;
+    align-self: stretch;
   }
 
   .right-photos {
     flex: 0 0 40%;
     gap: 10px;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .top-photo,
@@ -233,10 +252,19 @@ function itemClickHandler(photo: any, index: number) {
   .gallery-container {
     padding: 15px 8px;
     gap: 10px;
+    align-items: stretch;
   }
 
   .main-photo {
     height: 180px;
+    align-self: stretch;
+  }
+
+  .right-photos {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .top-photo,

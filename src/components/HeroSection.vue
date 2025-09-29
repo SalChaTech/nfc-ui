@@ -192,6 +192,7 @@ const selectAllText = (element) => {
   width: 100%;
   height: 60vh;
   overflow: hidden;
+  border-radius: 0 0 25px 25px;
 }
 
 .hero-image {
@@ -200,6 +201,7 @@ const selectAllText = (element) => {
   object-fit: cover;
   cursor: pointer;
   transition: all 0.3s ease;
+  border-radius: 0 0 25px 25px;
 }
 
 .hero-image:hover {
@@ -339,6 +341,14 @@ const selectAllText = (element) => {
 
 /* Responsive design - maintain mobile-like appearance on all screens */
 @media (max-width: 768px) {
+  .hero-container {
+    border-radius: 0 0 20px 20px;
+  }
+  
+  .hero-image {
+    border-radius: 0 0 20px 20px;
+  }
+  
   .invitation-container {
     padding: 30px 15px;
   }
@@ -361,6 +371,14 @@ const selectAllText = (element) => {
 }
 
 @media (max-width: 480px) {
+  .hero-container {
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .hero-image {
+    border-radius: 0 0 15px 15px;
+  }
+  
   .name {
     font-size: 2.2rem;
   }

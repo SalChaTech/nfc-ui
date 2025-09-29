@@ -62,58 +62,56 @@ function handleVideoClick(event: Event) {
     <div class="video-header">
       <h2>Ölümsüz An</h2>
     </div>
-    
-    <div class="video-container">
-      <!-- Video oynatıcı -->
-      <div v-if="videoFile" class="video-wrapper">
-        <video 
-          class="video-player"
-          :src="videoFile"
-          @ended="onVideoEnded"
-          @play="isPlaying = true"
-          @pause="isPlaying = false"
-          controls
-          preload="metadata"
-          @click="handleVideoClick"
-        >
-          Tarayıcınız video oynatmayı desteklemiyor.
-        </video>
-        
-        <!-- Video silme butonu -->
-        <button 
-          class="remove-btn" 
-          @click="removeVideo"
-          title="Videoyu sil"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Video yükleme alanı -->
-      <div v-else class="video-upload-area" @click="triggerVideoUpload">
-        <div class="upload-content">
-          <div class="upload-icon">+</div>
-          <div class="upload-text">Video Yükle</div>
-        </div>
-      </div>
-      
-      <!-- Gizli dosya input -->
-      <input 
-        type="file" 
-        ref="videoRef"
-        @change="handleVideoUpload"
-        accept="video/*"
-        style="display: none;"
-      />
+
+    <!-- Video oynatıcı -->
+    <div v-if="videoFile" class="video-wrapper">
+      <video
+        class="video-player"
+        :src="videoFile"
+        @ended="onVideoEnded"
+        @play="isPlaying = true"
+        @pause="isPlaying = false"
+        controls
+        preload="metadata"
+        @click="handleVideoClick"
+      >
+        Tarayıcınız video oynatmayı desteklemiyor.
+      </video>
+
+      <!-- Video silme butonu -->
+      <button
+        class="remove-btn"
+        @click="removeVideo"
+        title="Videoyu sil"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </div>
-    
+
+    <!-- Video yükleme alanı -->
+    <div v-else class="video-upload-area" @click="triggerVideoUpload">
+      <div class="upload-content">
+        <div class="upload-icon">+</div>
+        <div class="upload-text">Video Yükle</div>
+      </div>
+    </div>
+
+    <!-- Gizli dosya input -->
+    <input
+      type="file"
+      ref="videoRef"
+      @change="handleVideoUpload"
+      accept="video/*"
+      style="display: none;"
+    />
+
     <!-- Video modal -->
     <div v-if="showModal" class="video-modal" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
         <button class="close-btn" @click="closeVideoModal">&times;</button>
-        <video 
+        <video
           class="modal-video"
           :src="videoFile"
           controls
@@ -130,11 +128,12 @@ function handleVideoClick(event: Event) {
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 .video-section {
-  padding: 60px 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 60px 20px;
+  width: 100%;
 }
 
 .video-header {
@@ -151,20 +150,13 @@ function handleVideoClick(event: Event) {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.video-container {
-  width: 100%;
-  max-width: 800px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: relative;
-}
-
 .video-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 16/9;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 0;
 }
 
 .remove-btn {
@@ -224,8 +216,9 @@ function handleVideoClick(event: Event) {
 
 .video-upload-area {
   aspect-ratio: 16/9;
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
+  background: transparent;
+  border: 2px dashed #adb5bd;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,11 +227,15 @@ function handleVideoClick(event: Event) {
   position: relative;
   min-height: 200px;
   max-height: 400px;
+  width: 100%;
+  margin: 0;
 }
 
 .video-upload-area:hover {
-  border-color: #adb5bd;
-  background: #e9ecef;
+  border-color: #667eea;
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 }
 
 .upload-content {
@@ -246,12 +243,14 @@ function handleVideoClick(event: Event) {
   color: #6c757d;
   z-index: 10;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .upload-icon {
   font-size: 4rem;
   margin-bottom: 20px;
   animation: pulse 2s infinite;
+  transition: all 0.3s ease;
 }
 
 .upload-text {
@@ -260,6 +259,15 @@ function handleVideoClick(event: Event) {
   font-weight: 600;
   margin-bottom: 0;
   color: #495057;
+  transition: all 0.3s ease;
+}
+
+.video-upload-area:hover .upload-content {
+  color: #667eea;
+}
+
+.video-upload-area:hover .upload-icon {
+  transform: scale(1.1);
 }
 
 @keyframes pulse {
@@ -341,21 +349,18 @@ function handleVideoClick(event: Event) {
 /* Responsive tasarım */
 @media (max-width: 768px) {
   .video-section {
-    padding: 40px 15px;
+    padding: 25px 15px;
+    width: 100%;
   }
-  
+
   .video-header h2 {
     font-size: 2.5rem;
   }
-  
-  .video-container {
-    max-width: 100%;
-  }
-  
+
   .upload-icon {
     font-size: 3rem;
   }
-  
+
   .upload-text {
     font-size: 1.5rem;
   }
@@ -363,19 +368,28 @@ function handleVideoClick(event: Event) {
 
 @media (max-width: 480px) {
   .video-section {
-    padding: 30px 10px;
+    padding: 20px 10px;
+    width: 100%;
   }
-  
+
   .video-header h2 {
     font-size: 2rem;
   }
-  
+
   .upload-icon {
     font-size: 2.5rem;
   }
-  
+
   .upload-text {
     font-size: 1.2rem;
+  }
+}
+
+/* Çok küçük ekranlar için */
+@media (max-width: 360px) {
+  .video-section {
+    padding: 15px 8px;
+    width: 100%;
   }
 }
 </style>
