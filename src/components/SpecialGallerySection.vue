@@ -1,7 +1,7 @@
 <template>
   <div class="gallery-container mt-4">
     <!-- Ana büyük fotoğraf (sol taraf) -->
-    <div class="main-photo" @click="itemClickHandler(photos[0], 0)">
+    <div class="main-photo" @click="props.editable ? itemClickHandler(photos[0], 0) : null">
       <img :src="photos[0].source" alt="Ana düğün fotoğrafı" />
       <div class="photo-border"></div>
     </div>
@@ -9,13 +9,13 @@
     <!-- Sağ taraf fotoğrafları -->
     <div class="right-photos">
       <!-- Üst sağ fotoğraf -->
-      <div class="top-photo" @click="itemClickHandler(photos[1], 1)">
+      <div class="top-photo" @click="props.editable ? itemClickHandler(photos[1], 1) : null">
         <img :src="photos[1].source" alt="Düğün anı" />
         <div class="photo-border"></div>
       </div>
 
       <!-- Alt sağ fotoğraf -->
-      <div class="bottom-photo" @click="itemClickHandler(photos[2], 2)">
+      <div class="bottom-photo" @click="props.editable ? itemClickHandler(photos[2], 2) : null">
         <img :src="photos[2].source" alt="Çift anı" />
         <div class="photo-border"></div>
       </div>
@@ -23,7 +23,7 @@
   </div>
 
   <!-- Gizli dosya input -->
-  <input type="file" ref="photoInputRef" @change="handlePhotoChange" accept="image/*" style="display: none;" />
+  <input type="file" ref="photoInputRef" @change="handlePhotoChange" @click="props.editable ? handlePhotoChange : null" accept="image/*" style="display: none;" />
 
 </template>
 
@@ -32,6 +32,13 @@ import { ref } from 'vue'
 import g1Image from '../assets/g3.jpg'
 import g2Image from '../assets/g2.jpg'
 import g3Image from '../assets/g1.jpg'
+
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const photos = ref([
   { source: g1Image },

@@ -1,10 +1,10 @@
 <template>
   <div class="page-container">
-    <HeroSection></HeroSection>
-    <SpecialGallerySection></SpecialGallerySection>
-    <SaidYesVideoSection></SaidYesVideoSection>
+    <HeroSection :editable="editable" ></HeroSection>
+    <SpecialGallerySection :editable="editable" ></SpecialGallerySection>
+    <VideoSection :editable="editable" ></VideoSection>
     <CounterSection></CounterSection>
-    <CommonGalerySection></CommonGalerySection>
+    <CommonGalerySection :editable="editable"></CommonGalerySection>
   </div>
 </template>
 
@@ -12,8 +12,22 @@
 import HeroSection from '../components/HeroSection.vue'
 import SpecialGallerySection from '../components/SpecialGallerySection.vue'
 import CommonGalerySection from '@/components/CommonGalerySection.vue'
-import SaidYesVideoSection from '@/components/SaidYesVideoSection.vue'
+import VideoSection from '@/components/VideoSection.vue'
 import CounterSection from '@/components/CounterSection.vue'
+import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+
+
+const route = useRoute()
+
+const editable = ref(false)
+if (route.path.startsWith('/upload/')) {
+  editable.value = true
+} else if (route.path.startsWith('/show/')) {
+  editable.value = false
+}
+
+
 </script>
 
 <style scoped>

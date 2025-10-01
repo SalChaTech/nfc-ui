@@ -2,6 +2,13 @@
 import { ref, onMounted } from 'vue'
 import evlilikVideo from '../assets/say_yes.mp4'
 
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const videoRef = ref(null)
 const isPlaying = ref(false)
 const videoFile = ref(null)
@@ -105,21 +112,27 @@ function selectAllText(element: HTMLElement) {
 <template>
   <div class="video-section">
     <div class="video-header">
-      <h2 class="editable" @click="editTitle" @blur="saveTitle" @keydown.enter="saveTitle"
-        :contenteditable="isEditingTitle" ref="titleRef">{{ title }}</h2>
+      <h2 class="editable" @click="props.editable ? editTitle : null"
+          @blur="props.editable ? saveTitle : null"
+          @keydown.enter="props.editable ? saveTitle : null"
+          :contenteditable="props.editable ? isEditingTitle : null"
+          ref="titleRef">{{ title }}</h2>
     </div>
 
     <!-- Video oynatıcı -->
     <div v-if="videoFile" class="video-wrapper">
       <video class="video-player" :src="videoFile" @ended="onVideoEnded" @play="isPlaying = true"
-        @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
+             @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
         Tarayıcınız video oynatmayı desteklemiyor.
       </video>
 
       <!-- Video silme butonu -->
-      <button class="remove-btn" @click="removeVideo" title="Videoyu sil">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"
+      <button class="remove-btn" @click="removeVideo" title="Videoyu sil" v-if="props.editable">
+
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
@@ -134,7 +147,8 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Gizli dosya input -->
-    <input type="file" ref="videoRef" @change="handleVideoUpload" accept="video/*" style="display: none;" />
+    <input type="file" ref="videoRef"  @change="props.editable ? handleVideoUpload : null" accept="video/*"
+           style="display: none;" />
 
     <!-- Video modal -->
     <div v-if="showModal" class="video-modal" @click="closeVideoModal">

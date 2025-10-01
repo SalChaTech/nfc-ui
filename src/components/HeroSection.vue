@@ -1,6 +1,7 @@
 <template>
   <div class="hero-container">
-    <img :src="currentImage" @click="triggerImageUpload" class="hero-image" alt="Hero Image">
+    <img :src="currentImage" @click="props.editable ? triggerImageUpload() : null"
+         class="hero-image" alt="Hero Image">
     <!-- Overlay içerik -->
     <div class="invitation-container">
       <!-- Decorative top element -->
@@ -13,28 +14,36 @@
       <!-- Main invitation text -->
       <div class="invitation-content">
         <div class="invitation-text">
-          <div class="name editable" @click="editName('first')" @blur="saveName('first')"
-            @keydown.enter="saveName('first')" :contenteditable="editingName === 'first'" ref="firstNameRef">{{
-              names.first }}</div>
+          <div class="name editable" @click="props.editable ? editName('first') : null"
+               @blur="props.editable ? saveName('first') : null"
+               @keydown.enter="props.editable ? saveName('first') : null"
+               :contenteditable="props.editable && editingName === 'first'"
+               ref="firstNameRef">{{
+              names.first }}
+          </div>
           <div class="ampersand">&</div>
-          <div class="name editable" @click="editName('second')" @blur="saveName('second')"
-            @keydown.enter="saveName('second')" :contenteditable="editingName === 'second'" ref="secondNameRef">{{
-              names.second }}</div>
+          <div class="name editable" @click="props.editable ? editName('second') : null"
+               @blur="props.editable ? saveName('second') : null"
+               @keydown.enter="props.editable ? saveName('second') : null"
+               :contenteditable="props.editable && editingName === 'second'"
+               ref="secondNameRef">{{
+              names.second }}
+          </div>
         </div>
 
         <!-- Date section -->
         <div class="date-section">
-          <div class="date-text editable" @click="showDatePicker">{{ formattedDate }}</div>
+          <div class="date-text editable"  @click="props.editable ? showDatePicker() : null">{{ formattedDate }}</div>
           <div class="time-text">{{ day }}</div>
         </div>
 
         <!-- Date picker -->
-        <input type="date" ref="datePickerRef" @change="updateDate" :value="selectedDate"
-          style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;" />
+        <input type="date" ref="datePickerRef"   @change="props.editable ? updateDate($event) : null" :value="selectedDate"
+               style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;" />
 
         <!-- Hidden image upload -->
         <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*"
-          style="position: absolute; opacity: 0; pointer-events: none;" />
+               style="position: absolute; opacity: 0; pointer-events: none;" />
       </div>
 
       <!-- Decorative bottom element -->
@@ -49,13 +58,23 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import resim from '../assets/ress.jpg'
+import hero from '../assets/hero.jpg'
 import { useDateStore } from '../composables/useDateStore.js'
 
 // Tarih store'unu kullan
 const { updateDate: setStoreDate } = useDateStore()
 
-const currentImage = ref(resim)
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: false
+  }
+})
+
+
+
+
+const currentImage = ref(hero)
 
 // Reactive names data
 const names = reactive({
@@ -342,7 +361,8 @@ onMounted(() => {
 
 /* Responsive design - maintain mobile-like appearance on all screens */
 @media (max-width: 768px) {
-  .hero-container {}
+  .hero-container {
+  }
 
   .invitation-container {
     padding: var(--padding-2xl) var(--padding-lg);
@@ -366,9 +386,11 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .hero-container {}
+  .hero-container {
+  }
 
-  .hero-image {}
+  .hero-image {
+  }
 
   .name {
     font-size: 2.2rem;

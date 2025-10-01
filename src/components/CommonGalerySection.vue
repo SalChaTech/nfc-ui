@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const photos = ref([])
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: false
+  }
+})
+
+import g4Image from '../assets/g4.jpg'
+import g5Image from '../assets/g5.jpg'
+
+
+const photos = ref([{ source: g4Image }, { source: g5Image }])
 const imageUploadRef = ref(null)
 const selectedPhoto = ref(null)
 const showModal = ref(false)
@@ -84,26 +95,31 @@ onUnmounted(() => {
 
     <div class="gallery-grid">
       <!-- Mevcut fotoğraflar -->
-      <div v-for="(photo, index) in photos" :key="index" class="gallery-item" @click="itemClickHandler(photo, index)">
+      <div v-for="(photo, index) in photos" :key="index" class="gallery-item"
+           @click="itemClickHandler(photo, index)">
         <img :src="photo.source" :alt="`Fotoğraf ${index + 1}`" />
-        <button class="remove-btn" @click.stop="removePhoto(index)" title="Fotoğrafı kaldır">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button class="remove-btn" @click.stop="props.editable ? removePhoto(index) : null"
+                v-if="props.editable"
+                title="Fotoğrafı kaldır">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               xmlns="http://www.w3.org/2000/svg">
             <path
               d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
           </svg>
         </button>
       </div>
 
       <!-- Resim ekle butonu -->
-      <div class="add-photo-item" @click="triggerImageUpload">
+      <div class="add-photo-item" @click="triggerImageUpload" v-if="props.editable">
         <div class="add-icon">+</div>
       </div>
     </div>
 
     <!-- Gizli dosya input -->
     <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*" multiple
-      style="display: none;" />
+           style="display: none;" v-if="props.editable" />
 
     <!-- Fotoğraf modal -->
     <div v-if="showModal" class="photo-modal" @click="closeModal">
@@ -111,14 +127,16 @@ onUnmounted(() => {
         <button class="close-btn" @click="closeModal">&times;</button>
 
         <!-- Sol ok butonu -->
-        <button v-if="selectedPhoto && selectedPhoto.index > 0" class="nav-btn nav-prev" @click="prevPhoto"
-          title="Önceki fotoğraf">
+        <button v-if="selectedPhoto && selectedPhoto.index > 0" class="nav-btn nav-prev"
+                @click="prevPhoto"
+                title="Önceki fotoğraf">
           ‹
         </button>
 
         <!-- Sağ ok butonu -->
-        <button v-if="selectedPhoto && selectedPhoto.index < photos.length - 1" class="nav-btn nav-next"
-          @click="nextPhoto" title="Sonraki fotoğraf">
+        <button v-if="selectedPhoto && selectedPhoto.index < photos.length - 1"
+                class="nav-btn nav-next"
+                @click="nextPhoto" title="Sonraki fotoğraf">
           ›
         </button>
 
