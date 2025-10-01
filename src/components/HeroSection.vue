@@ -2,7 +2,7 @@
   <div class="hero-container">
     <img
       :src="currentImage"
-      @click="triggerImageUpload"
+      @click="props.editable ? triggerImageUpload() : null"
       class="hero-image"
       alt="Hero Image"
     >
@@ -14,56 +14,56 @@
           <div class="decorative-dot"></div>
           <div class="decorative-line"></div>
         </div>
-        
+
         <!-- Main invitation text -->
         <div class="invitation-content">
           <div class="invitation-text">
-            <div 
-              class="name editable" 
-              @click="editName('first')"
-              @blur="saveName('first')"
-              @keydown.enter="saveName('first')"
-              :contenteditable="editingName === 'first'"
+            <div
+              class="name editable"
+              @click="props.editable ? editName('first') : null"
+              @blur="props.editable ? saveName('first') : null"
+              @keydown.enter="props.editable ? saveName('first') : null"
+              :contenteditable="props.editable && editingName === 'first'"
               ref="firstNameRef"
             >{{ names.first }}</div>
             <div class="ampersand">&</div>
-            <div 
-              class="name editable" 
-              @click="editName('second')"
-              @blur="saveName('second')"
-              @keydown.enter="saveName('second')"
-              :contenteditable="editingName === 'second'"
+            <div
+              class="name editable"
+              @click="props.editable ? editName('second') : null"
+              @blur="props.editable ? saveName('second') : null"
+              @keydown.enter="props.editable ? saveName('second') : null"
+              :contenteditable="props.editable && editingName === 'second'"
               ref="secondNameRef"
             >{{ names.second }}</div>
           </div>
-          
+
           <!-- Date section -->
           <div class="date-section">
-            <div 
-              class="date-text editable" 
-              @click="showDatePicker"
+            <div
+              class="date-text editable"
+              @click="props.editable ? showDatePicker() : null"
             >{{ formattedDate }}</div>
             <div class="time-text">{{ day }}</div>
           </div>
-          
+
           <!-- Hidden date picker -->
-          <input 
-            type="date" 
+          <input
+            type="date"
             ref="datePickerRef"
-            @change="updateDate"
+            @change="props.editable ? handleImageUpload($event) : null"
             style="position: absolute; opacity: 0; pointer-events: none;"
           />
-          
+
           <!-- Hidden image upload -->
-          <input 
-            type="file" 
+          <input
+            type="file"
             ref="imageUploadRef"
             @change="handleImageUpload"
             accept="image/*"
             style="position: absolute; opacity: 0; pointer-events: none;"
           />
         </div>
-        
+
         <!-- Decorative bottom element -->
         <div class="decorative-bottom">
           <div class="decorative-line"></div>
@@ -76,9 +76,18 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import resim from '../assets/ress.jpg'
 
-const currentImage = ref(resim)
+import { IMAGES} from '@/constants/images.js';
+
+
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const currentImage = ref(IMAGES[0])
 
 // Reactive names data
 const names = reactive({
@@ -344,27 +353,27 @@ const selectAllText = (element) => {
   .hero-container {
     border-radius: 0 0 20px 20px;
   }
-  
+
   .hero-image {
     border-radius: 0 0 20px 20px;
   }
-  
+
   .invitation-container {
     padding: 30px 15px;
   }
-  
+
   .name {
     font-size: 2.8rem;
   }
-  
+
   .date-text {
     font-size: 1.5rem;
   }
-  
+
   .time-text {
     font-size: 1rem;
   }
-  
+
   .decorative-line {
     width: 40px;
   }
@@ -374,19 +383,19 @@ const selectAllText = (element) => {
   .hero-container {
     border-radius: 0 0 15px 15px;
   }
-  
+
   .hero-image {
     border-radius: 0 0 15px 15px;
   }
-  
+
   .name {
     font-size: 2.2rem;
   }
-  
+
   .date-text {
     font-size: 1.3rem;
   }
-  
+
   .time-text {
     font-size: 0.9rem;
   }

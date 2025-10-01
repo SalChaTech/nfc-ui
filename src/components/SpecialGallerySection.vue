@@ -35,11 +35,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { IMAGES} from '@/constants/images.js';
+
+
+const props = defineProps({
+  editable: {
+    type: Boolean,
+    default: fa
+  }
+})
+
 
 const photos = ref([
-  { source: 'https://images.unsplash.com/photo-1517088455889-bfa75135412c?auto=format&fit=crop&w=749&q=80' },
-  { source: 'https://images.unsplash.com/photo-1526656892012-7b336603ed46?auto=format&fit=crop&w=334&q=80' },
-  { source: 'https://images.unsplash.com/photo-1521024221340-efe7d7fa239b?auto=format&fit=crop&w=750&q=80' }
+  { source: IMAGES[1] },
+  { source: IMAGES[5] },
+  { source: IMAGES[6] }
 ])
 
 const photoInputRef = ref(null)

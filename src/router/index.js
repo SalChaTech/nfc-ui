@@ -5,8 +5,10 @@ import UploadMemory from '@/views/UploadMemory.vue'
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginPage },
-  { path: '/upload-memory', name: UploadMemory, component: UploadMemory},
-]
+  { path: '/upload/:id', name: 'UploadMemory', component: UploadMemory },
+
+  // Show route (salt görüntüleme)
+  { path: '/show/:id', name: 'ShowMemory', component: UploadMemory }]
 
 const router = createRouter({
   history: createWebHistory(),
