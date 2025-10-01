@@ -23,28 +23,28 @@
   </div>
 
   <!-- Gizli dosya input -->
-  <input
-    type="file"
-    ref="photoInputRef"
-    @change="handlePhotoChange"
-    accept="image/*"
-    style="display: none;"
-  />
+  <input type="file" ref="photoInputRef" @change="handlePhotoChange" accept="image/*" style="display: none;" />
 
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import g1Image from '../assets/g3.jpg'
+import g2Image from '../assets/g2.jpg'
+import g3Image from '../assets/g1.jpg'
 
 const photos = ref([
-  { source: 'https://images.unsplash.com/photo-1517088455889-bfa75135412c?auto=format&fit=crop&w=749&q=80' },
-  { source: 'https://images.unsplash.com/photo-1526656892012-7b336603ed46?auto=format&fit=crop&w=334&q=80' },
-  { source: 'https://images.unsplash.com/photo-1521024221340-efe7d7fa239b?auto=format&fit=crop&w=750&q=80' }
+  { source: g1Image },
+  { source: g2Image },
+  { source: g3Image }
 ])
 
 const photoInputRef = ref(null)
+const selectedPhotoIndex = ref(0)
 
 function itemClickHandler(photo: any, index: number) {
+  // Hangi fotoğrafa tıklandığını kaydet
+  selectedPhotoIndex.value = index
   // Fotoğraf değiştirme için input'u tetikle
   if (photoInputRef.value) {
     photoInputRef.value.click()
@@ -56,8 +56,8 @@ function handlePhotoChange(event: any) {
   if (file && file.type.startsWith('image/')) {
     const reader = new FileReader()
     reader.onload = (e: any) => {
-      // İlk fotoğrafı değiştir (index 0)
-      photos.value[0].source = e.target.result
+      // Tıklanan fotoğrafı değiştir
+      photos.value[selectedPhotoIndex.value].source = e.target.result
     }
     reader.readAsDataURL(file)
   }
@@ -65,13 +65,13 @@ function handlePhotoChange(event: any) {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+/* Font import'ları artık theme.css'de */
 
 .gallery-container {
   position: relative;
   max-width: 900px;
   margin: 0 auto;
-  padding: 60px 20px;
+  padding: 60px 0px;
   background: transparent;
   display: flex;
   gap: 30px;
@@ -85,24 +85,26 @@ function handlePhotoChange(event: any) {
   flex: 0 0 55%;
   height: 500px;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: var(--radius-2xl);
+  border-top-left-radius: 0%;
+  border-bottom-left-radius: 0%;
   overflow: hidden;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  transition: all 0.4s ease;
+  box-shadow: 0 12px 30px var(--shadow-light);
+  transition: var(--transition-slow) var(--ease-in-out);
   align-self: flex-start;
   margin: 0;
 }
 
 .main-photo:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 20px 45px var(--shadow-medium);
 }
 
 .main-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform var(--transition-slow) var(--ease-in-out);
 }
 
 .main-photo:hover img {
@@ -142,23 +144,25 @@ function handlePhotoChange(event: any) {
   position: relative;
   height: 240px;
   cursor: pointer;
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
+  border-top-right-radius: 0%;
+  border-bottom-right-radius: 0%;
   overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s ease;
+  box-shadow: 0 8px 25px var(--shadow-light);
+  transition: var(--transition-slow) var(--ease-in-out);
   margin: 0;
 }
 
 .top-photo:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 35px var(--shadow-medium);
 }
 
 .top-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform var(--transition-slow) var(--ease-in-out);
 }
 
 .top-photo:hover img {
@@ -170,23 +174,25 @@ function handlePhotoChange(event: any) {
   position: relative;
   height: 240px;
   cursor: pointer;
-  border-radius: 15px;
+  border-radius: var(--radius-xl);
+  border-top-right-radius: 0%;
+  border-bottom-right-radius: 0%;
   overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s ease;
+  box-shadow: 0 8px 25px var(--shadow-light);
+  transition: var(--transition-slow) var(--ease-in-out);
   margin: 0;
 }
 
 .bottom-photo:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 35px var(--shadow-medium);
 }
 
 .bottom-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform var(--transition-slow) var(--ease-in-out);
 }
 
 .bottom-photo:hover img {
@@ -217,7 +223,7 @@ function handlePhotoChange(event: any) {
 /* Responsive tasarım - solda bir, sağda iki fotoğraf */
 @media (max-width: 768px) {
   .gallery-container {
-    padding: 25px 15px;
+    padding: 25px 0px;
     gap: 15px;
     max-width: 100%;
     align-items: stretch;
@@ -225,13 +231,15 @@ function handlePhotoChange(event: any) {
   }
 
   .main-photo {
-    flex: 0 0 50%; /* Sol taraf %50 */
+    flex: 0 0 50%;
+    /* Sol taraf %50 */
     height: 280px;
     align-self: stretch;
   }
 
   .right-photos {
-    flex: 0 0 45%; /* Sağ taraf %45 */
+    flex: 0 0 45%;
+    /* Sağ taraf %45 */
     gap: 12px;
     align-self: stretch;
     display: flex;
@@ -247,13 +255,14 @@ function handlePhotoChange(event: any) {
 
 @media (max-width: 480px) {
   .gallery-container {
-    padding: 20px 10px;
+    padding: 20px 0px;
     gap: 12px;
     align-items: stretch;
   }
 
   .main-photo {
-    flex: 0 0 55%; /* Mobilde biraz daha büyük */
+    flex: 0 0 55%;
+    /* Mobilde biraz daha büyük */
     height: 220px;
     align-self: stretch;
   }
@@ -276,7 +285,7 @@ function handlePhotoChange(event: any) {
 /* Çok küçük ekranlar için */
 @media (max-width: 360px) {
   .gallery-container {
-    padding: 15px 8px;
+    padding: 15px 0px;
     gap: 10px;
     align-items: stretch;
   }

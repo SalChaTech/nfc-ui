@@ -3,7 +3,7 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <RouterView/>
+  <RouterView />
 </template>
 
 <style>
@@ -16,6 +16,6 @@ html, body {
 }
 
 body {
-  font-family: 'Roboto', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
 }
 </style>

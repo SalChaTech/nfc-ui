@@ -1,82 +1,59 @@
 <template>
   <div class="hero-container">
-    <img
-      :src="currentImage"
-      @click="triggerImageUpload"
-      class="hero-image"
-      alt="Hero Image"
-    >
-      <!-- Overlay içerik -->
-      <div class="invitation-container">
-        <!-- Decorative top element -->
-        <div class="decorative-top">
-          <div class="decorative-line"></div>
-          <div class="decorative-dot"></div>
-          <div class="decorative-line"></div>
+    <img :src="currentImage" @click="triggerImageUpload" class="hero-image" alt="Hero Image">
+    <!-- Overlay içerik -->
+    <div class="invitation-container">
+      <!-- Decorative top element -->
+      <div class="decorative-top">
+        <div class="decorative-line"></div>
+        <div class="decorative-dot"></div>
+        <div class="decorative-line"></div>
+      </div>
+
+      <!-- Main invitation text -->
+      <div class="invitation-content">
+        <div class="invitation-text">
+          <div class="name editable" @click="editName('first')" @blur="saveName('first')"
+            @keydown.enter="saveName('first')" :contenteditable="editingName === 'first'" ref="firstNameRef">{{
+              names.first }}</div>
+          <div class="ampersand">&</div>
+          <div class="name editable" @click="editName('second')" @blur="saveName('second')"
+            @keydown.enter="saveName('second')" :contenteditable="editingName === 'second'" ref="secondNameRef">{{
+              names.second }}</div>
         </div>
 
-        <!-- Main invitation text -->
-        <div class="invitation-content">
-          <div class="invitation-text">
-            <div
-              class="name editable"
-              @click="editName('first')"
-              @blur="saveName('first')"
-              @keydown.enter="saveName('first')"
-              :contenteditable="editingName === 'first'"
-              ref="firstNameRef"
-            >{{ names.first }}</div>
-            <div class="ampersand">&</div>
-            <div
-              class="name editable"
-              @click="editName('second')"
-              @blur="saveName('second')"
-              @keydown.enter="saveName('second')"
-              :contenteditable="editingName === 'second'"
-              ref="secondNameRef"
-            >{{ names.second }}</div>
-          </div>
-
-          <!-- Date section -->
-          <div class="date-section">
-            <div
-              class="date-text editable"
-              @click="showDatePicker"
-            >{{ formattedDate }}</div>
-            <div class="time-text">{{ day }}</div>
-          </div>
-
-          <!-- Hidden date picker -->
-          <input
-            type="date"
-            ref="datePickerRef"
-            @change="updateDate"
-            style="position: absolute; opacity: 0; pointer-events: none;"
-          />
-
-          <!-- Hidden image upload -->
-          <input
-            type="file"
-            ref="imageUploadRef"
-            @change="handleImageUpload"
-            accept="image/*"
-            style="position: absolute; opacity: 0; pointer-events: none;"
-          />
+        <!-- Date section -->
+        <div class="date-section">
+          <div class="date-text editable" @click="showDatePicker">{{ formattedDate }}</div>
+          <div class="time-text">{{ day }}</div>
         </div>
 
-        <!-- Decorative bottom element -->
-        <div class="decorative-bottom">
-          <div class="decorative-line"></div>
-          <div class="decorative-dot"></div>
-          <div class="decorative-line"></div>
-        </div>
+        <!-- Date picker -->
+        <input type="date" ref="datePickerRef" @change="updateDate" :value="selectedDate"
+          style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;" />
+
+        <!-- Hidden image upload -->
+        <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*"
+          style="position: absolute; opacity: 0; pointer-events: none;" />
+      </div>
+
+      <!-- Decorative bottom element -->
+      <div class="decorative-bottom">
+        <div class="decorative-line"></div>
+        <div class="decorative-dot"></div>
+        <div class="decorative-line"></div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import resim from '../assets/ress.jpg'
+import { useDateStore } from '../composables/useDateStore.js'
+
+// Tarih store'unu kullan
+const { updateDate: setStoreDate } = useDateStore()
 
 const currentImage = ref(resim)
 
@@ -87,7 +64,7 @@ const names = reactive({
 })
 
 // Reactive date data
-const selectedDate = ref('2024-07-15') // ISO format for date picker
+const selectedDate = ref('2024-07-17') // ISO format for date picker
 const day = ref('Cumartesi')
 
 // Editing state
@@ -139,7 +116,21 @@ const saveName = (nameType) => {
 // Methods for date picker
 const showDatePicker = () => {
   if (datePickerRef.value) {
-    datePickerRef.value.showPicker()
+    // Date picker'ı tetikle
+    datePickerRef.value.focus()
+
+    // showPicker() metodunu dene (bazı tarayıcılarda desteklenmeyebilir)
+    if (typeof datePickerRef.value.showPicker === 'function') {
+      try {
+        datePickerRef.value.showPicker()
+      } catch (error) {
+        console.log('showPicker() desteklenmiyor, click() kullanılıyor')
+        datePickerRef.value.click()
+      }
+    } else {
+      // showPicker() desteklenmiyorsa click() kullan
+      datePickerRef.value.click()
+    }
   }
 }
 
@@ -150,6 +141,9 @@ const updateDate = (event) => {
     const date = new Date(selectedDate.value)
     const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
     day.value = days[date.getDay()]
+
+    // Store'a tarihi kaydet
+    setStoreDate(selectedDate.value)
   }
 }
 
@@ -182,17 +176,21 @@ const selectAllText = (element) => {
     selection.addRange(range)
   }
 }
+
+// Component mount edildiğinde başlangıç tarihini store'a kaydet
+onMounted(() => {
+  setStoreDate(selectedDate.value)
+})
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+/* Font import'ları artık theme.css'de */
 
 .hero-container {
   position: relative;
   width: 100%;
   height: 60vh;
   overflow: hidden;
-  border-radius: 0 0 25px 25px;
 }
 
 .hero-image {
@@ -201,7 +199,6 @@ const selectAllText = (element) => {
   object-fit: cover;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 0 0 25px 25px;
 }
 
 .hero-image:hover {
@@ -218,9 +215,9 @@ const selectAllText = (element) => {
   color: white;
   max-width: 320px;
   width: 80%;
-  padding: 30px 15px;
+  padding: var(--padding-2xl) var(--padding-lg);
   background: rgba(0, 0, 0, 0.15);
-  border-radius: 20px;
+  border-radius: var(--radius-2xl);
   backdrop-filter: blur(3px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -230,48 +227,48 @@ const selectAllText = (element) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
+  margin: var(--padding-lg) 0;
 }
 
 .decorative-line {
   width: 60px;
   height: 1px;
   background: linear-gradient(90deg, transparent, white, transparent);
-  margin: 0 10px;
+  margin: 0 var(--padding-sm);
 }
 
 .decorative-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--padding-sm);
+  height: var(--padding-sm);
   background: white;
   border-radius: 50%;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .invitation-content {
-  margin: 30px 0;
+  margin: var(--padding-2xl) 0;
 }
 
 .invitation-text {
-  margin-bottom: 30px;
+  margin-bottom: var(--padding-2xl);
 }
 
 .name {
-  font-family: 'Dancing Script', cursive;
+  font-family: var(--font-primary);
   font-size: 3.5rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: 1.2;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
   letter-spacing: 2px;
-  margin: 5px 0;
+  margin: var(--padding-xs) 0;
 }
 
 .name.editable {
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  padding: 5px 10px;
-  margin: 5px -10px;
+  transition: var(--transition-normal) var(--ease-in-out);
+  border-radius: var(--radius-md);
+  padding: var(--padding-xs) var(--padding-sm);
+  margin: var(--padding-xs) calc(-1 * var(--padding-sm));
 }
 
 .name.editable:hover {
@@ -286,34 +283,35 @@ const selectAllText = (element) => {
 }
 
 .ampersand {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-secondary);
   font-size: 2.5rem;
   font-style: italic;
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   opacity: 0.9;
-  margin: 15px 0;
+  margin: var(--padding-lg) 0;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 .date-section {
+  position: relative;
   border-top: 1px solid rgba(255, 255, 255, 0.3);
-  padding-top: 25px;
-  margin-top: 25px;
+  padding-top: var(--padding-xl);
+  margin-top: var(--padding-xl);
 }
 
 .date-text {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-secondary);
   font-size: 1.8rem;
-  font-weight: 500;
-  margin-bottom: 8px;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--padding-sm);
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
   letter-spacing: 1px;
 }
 
 .time-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.2rem;
-  font-weight: 300;
+  font-family: var(--font-secondary);
+  font-size: 1.6rem;
+  font-weight: var(--font-weight-light);
   opacity: 0.9;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
   letter-spacing: 0.5px;
@@ -321,11 +319,14 @@ const selectAllText = (element) => {
 
 /* Editable date styles */
 .date-text.editable {
+  position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-  padding: 3px 8px;
-  margin: 2px -8px;
+  transition: var(--transition-normal) var(--ease-in-out);
+  border-radius: var(--radius-sm);
+  padding: var(--padding-xs) var(--padding-sm);
+  margin: var(--padding-xs) calc(-1 * var(--padding-sm));
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .date-text.editable:hover {
@@ -341,16 +342,10 @@ const selectAllText = (element) => {
 
 /* Responsive design - maintain mobile-like appearance on all screens */
 @media (max-width: 768px) {
-  .hero-container {
-    border-radius: 0 0 20px 20px;
-  }
-
-  .hero-image {
-    border-radius: 0 0 20px 20px;
-  }
+  .hero-container {}
 
   .invitation-container {
-    padding: 30px 15px;
+    padding: var(--padding-2xl) var(--padding-lg);
   }
 
   .name {
@@ -362,22 +357,18 @@ const selectAllText = (element) => {
   }
 
   .time-text {
-    font-size: 1rem;
+    font-size: 1.3rem;
   }
 
   .decorative-line {
-    width: 40px;
+    width: var(--size-2xl);
   }
 }
 
 @media (max-width: 480px) {
-  .hero-container {
-    border-radius: 0 0 15px 15px;
-  }
+  .hero-container {}
 
-  .hero-image {
-    border-radius: 0 0 15px 15px;
-  }
+  .hero-image {}
 
   .name {
     font-size: 2.2rem;
@@ -388,15 +379,7 @@ const selectAllText = (element) => {
   }
 
   .time-text {
-    font-size: 0.9rem;
-  }
-}
-
-/* Large screens - maintain mobile-like width */
-@media (min-width: 1200px) {
-  .invitation-container {
-    max-width: 320px;
-    width: 320px;
+    font-size: 1.1rem;
   }
 }
 </style>

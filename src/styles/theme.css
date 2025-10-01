@@ -1,0 +1,720 @@
+/* ========================================
+   NFC UI - Ortak Tema Dosyası
+   ======================================== */
+
+/* ========================================
+   FONT IMPORT'LARI
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Parisienne&display=swap" rel="stylesheet');
+
+/* ========================================
+   CSS DEĞİŞKENLERİ - RENKLER
+   ======================================== */
+:root {
+  /* Ana Renkler */
+  --color-primary: #735751;
+  --color-secondary: #6c757d;
+  --color-text: #495057;
+  --color-text-light: #adb5bd;
+
+  /* Gradient Renkler */
+  --gradient-primary: linear-gradient(135deg, #f5ebe0 0%, #fbf7f3 100%);
+  --gradient-red: linear-gradient(135deg, #c82333, #81010e);
+  --gradient-hover: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+
+  /* Durum Renkleri */
+  --color-danger: #dc3545;
+  --color-danger-hover: #c82333;
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+
+  /* Arka Plan Renkleri */
+  --bg-overlay: rgba(0, 0, 0, 0.9);
+  --bg-overlay-light: rgba(0, 0, 0, 0.7);
+  --bg-white: rgba(255, 255, 255, 0.95);
+  --bg-white-light: rgba(255, 255, 255, 0.8);
+
+  /* Gölge Renkleri */
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+  --shadow-heavy: rgba(0, 0, 0, 0.2);
+  --shadow-danger: rgba(220, 53, 69, 0.3);
+  --shadow-blue: rgba(102, 126, 234, 0.2);
+}
+
+/* ========================================
+   CSS DEĞİŞKENLERİ - FONT'LAR
+   ======================================== */
+:root {
+  /* Font Aileleri */
+  --font-primary: 'Parisienne';
+  --font-secondary: 'Parisienne', serif;
+  --font-body: 'Roboto', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Font Boyutları */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  --font-size-6xl: 3.75rem;    /* 60px */
+
+  /* Font Ağırlıkları */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* ========================================
+   CSS DEĞİŞKENLERİ - BOYUTLAR
+   ======================================== */
+:root {
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 15px;
+  --radius-2xl: 20px;
+  --radius-3xl: 25px;
+  --radius-full: 50%;
+
+  /* Spacing - Padding & Margin */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
+
+  /* Component Spacing */
+  --padding-xs: 8px;
+  --padding-sm: 12px;
+  --padding-md: 16px;
+  --padding-lg: 20px;
+  --padding-xl: 24px;
+  --padding-2xl: 32px;
+  --padding-3xl: 48px;
+  --padding-4xl: 60px;
+
+  /* Component Sizes */
+  --size-xs: 16px;
+  --size-sm: 20px;
+  --size-md: 24px;
+  --size-lg: 28px;
+  --size-xl: 32px;
+  --size-2xl: 40px;
+  --size-3xl: 48px;
+  --size-4xl: 64px;
+
+  /* Container Sizes */
+  --container-sm: 360px;
+  --container-md: 480px;
+  --container-lg: 768px;
+  --container-xl: 900px;
+  --container-2xl: 1200px;
+
+  /* Z-Index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* Efekt Değerleri */
+  --blur-sm: 2px;
+  --blur-md: 4px;
+  --blur-lg: 8px;
+  --blur-xl: 16px;
+  --blur-2xl: 32px;
+  --blur-3xl: 40px;
+
+  --brightness-sm: 1.05;
+  --brightness-md: 1.1;
+  --brightness-lg: 1.2;
+
+  --saturate-sm: 1.1;
+  --saturate-md: 1.2;
+  --saturate-lg: 1.5;
+  --saturate-xl: 2;
+
+  --opacity-sm: 0.1;
+  --opacity-md: 0.3;
+  --opacity-lg: 0.5;
+  --opacity-xl: 0.7;
+  --opacity-2xl: 0.9;
+}
+
+/* ========================================
+   CSS DEĞİŞKENLERİ - ANİMASYONLAR
+   ======================================== */
+:root {
+  /* Transition Süreleri */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.4s;
+  --transition-very-slow: 0.6s;
+
+  /* Easing Fonksiyonları */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Animation Süreleri */
+  --animation-fast: 0.3s;
+  --animation-normal: 0.6s;
+  --animation-slow: 1.2s;
+  --animation-very-slow: 2s;
+
+  /* Animation Delay */
+  --delay-fast: 0.1s;
+  --delay-normal: 0.2s;
+  --delay-slow: 0.5s;
+  --delay-very-slow: 1s;
+}
+
+/* ========================================
+   GENEL STİLLER
+   ======================================== */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+}
+
+/* ========================================
+   YARDIMCI SINIFLAR
+   ======================================== */
+
+/* Font Sınıfları */
+.font-primary {
+  font-family: var(--font-primary);
+}
+
+.font-secondary {
+  font-family: var(--font-secondary);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Renk Sınıfları */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.bg-primary {
+  background: var(--color-primary);
+}
+
+.bg-gradient {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-red {
+  background: var(--gradient-red);
+}
+
+.bg-gradient-blue {
+  background: var(--gradient-blue);
+}
+
+/* Gölge Sınıfları */
+.shadow-light {
+  box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.shadow-heavy {
+  box-shadow: 0 8px 16px var(--shadow-heavy);
+}
+
+/* Border Radius Sınıfları */
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+  border-radius: var(--radius-full);
+}
+
+/* Transition Sınıfları */
+.transition-fast {
+  transition: all var(--transition-fast) var(--ease-in-out);
+}
+
+.transition-normal {
+  transition: all var(--transition-normal) var(--ease-in-out);
+}
+
+.transition-slow {
+  transition: all var(--transition-slow) var(--ease-in-out);
+}
+
+/* ========================================
+   LAYOUT YARDIMCI SINIFLARI
+   ======================================== */
+
+/* Container Sınıfları */
+.container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--padding-lg);
+}
+
+.container-sm {
+  max-width: var(--container-sm);
+}
+
+.container-md {
+  max-width: var(--container-md);
+}
+
+.container-lg {
+  max-width: var(--container-lg);
+}
+
+.container-xl {
+  max-width: var(--container-xl);
+}
+
+.container-2xl {
+  max-width: var(--container-2xl);
+}
+
+/* Padding Sınıfları */
+.p-xs { padding: var(--padding-xs); }
+.p-sm { padding: var(--padding-sm); }
+.p-md { padding: var(--padding-md); }
+.p-lg { padding: var(--padding-lg); }
+.p-xl { padding: var(--padding-xl); }
+.p-2xl { padding: var(--padding-2xl); }
+.p-3xl { padding: var(--padding-3xl); }
+.p-4xl { padding: var(--padding-4xl); }
+
+.px-xs { padding-left: var(--padding-xs); padding-right: var(--padding-xs); }
+.px-sm { padding-left: var(--padding-sm); padding-right: var(--padding-sm); }
+.px-md { padding-left: var(--padding-md); padding-right: var(--padding-md); }
+.px-lg { padding-left: var(--padding-lg); padding-right: var(--padding-lg); }
+.px-xl { padding-left: var(--padding-xl); padding-right: var(--padding-xl); }
+.px-2xl { padding-left: var(--padding-2xl); padding-right: var(--padding-2xl); }
+.px-3xl { padding-left: var(--padding-3xl); padding-right: var(--padding-3xl); }
+.px-4xl { padding-left: var(--padding-4xl); padding-right: var(--padding-4xl); }
+
+.py-xs { padding-top: var(--padding-xs); padding-bottom: var(--padding-xs); }
+.py-sm { padding-top: var(--padding-sm); padding-bottom: var(--padding-sm); }
+.py-md { padding-top: var(--padding-md); padding-bottom: var(--padding-md); }
+.py-lg { padding-top: var(--padding-lg); padding-bottom: var(--padding-lg); }
+.py-xl { padding-top: var(--padding-xl); padding-bottom: var(--padding-xl); }
+.py-2xl { padding-top: var(--padding-2xl); padding-bottom: var(--padding-2xl); }
+.py-3xl { padding-top: var(--padding-3xl); padding-bottom: var(--padding-3xl); }
+.py-4xl { padding-top: var(--padding-4xl); padding-bottom: var(--padding-4xl); }
+
+/* Margin Sınıfları */
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+.m-2xl { margin: var(--spacing-2xl); }
+.m-3xl { margin: var(--spacing-3xl); }
+
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-auto { margin-top: auto; margin-bottom: auto; }
+
+/* Size Sınıfları */
+.size-xs { width: var(--size-xs); height: var(--size-xs); }
+.size-sm { width: var(--size-sm); height: var(--size-sm); }
+.size-md { width: var(--size-md); height: var(--size-md); }
+.size-lg { width: var(--size-lg); height: var(--size-lg); }
+.size-xl { width: var(--size-xl); height: var(--size-xl); }
+.size-2xl { width: var(--size-2xl); height: var(--size-2xl); }
+.size-3xl { width: var(--size-3xl); height: var(--size-3xl); }
+.size-4xl { width: var(--size-4xl); height: var(--size-4xl); }
+
+/* Display Sınıfları */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.hidden { display: none; }
+
+/* Flex Sınıfları */
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+/* Grid Sınıfları */
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+
+/* ========================================
+   ANİMASYON SİSTEMİ
+   ======================================== */
+
+/* Animasyon Keyframe'leri */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-30px);
+  }
+  70% {
+    transform: translateY(-15px);
+  }
+  90% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animasyon Sınıfları */
+.animate-fade-in {
+  animation: fadeIn var(--animation-normal) var(--ease-out);
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--animation-normal) var(--ease-out);
+}
+
+.animate-slide-up {
+  animation: slideUp var(--animation-normal) var(--ease-out);
+}
+
+.animate-slide-down {
+  animation: slideDown var(--animation-normal) var(--ease-out);
+}
+
+.animate-slide-left {
+  animation: slideLeft var(--animation-normal) var(--ease-out);
+}
+
+.animate-slide-right {
+  animation: slideRight var(--animation-normal) var(--ease-out);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--animation-normal) var(--ease-bounce);
+}
+
+.animate-scale-out {
+  animation: scaleOut var(--animation-normal) var(--ease-out);
+}
+
+.animate-bounce {
+  animation: bounce var(--animation-slow) var(--ease-bounce);
+}
+
+.animate-pulse {
+  animation: pulse var(--animation-very-slow) ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+}
+
+/* ========================================
+   EFEKT SİSTEMİ
+   ======================================== */
+
+/* Blur Sınıfları */
+.blur-sm { filter: blur(var(--blur-sm)); }
+.blur-md { filter: blur(var(--blur-md)); }
+.blur-lg { filter: blur(var(--blur-lg)); }
+.blur-xl { filter: blur(var(--blur-xl)); }
+.blur-2xl { filter: blur(var(--blur-2xl)); }
+.blur-3xl { filter: blur(var(--blur-3xl)); }
+
+/* Backdrop Blur Sınıfları */
+.backdrop-blur-sm { backdrop-filter: blur(var(--blur-sm)); }
+.backdrop-blur-md { backdrop-filter: blur(var(--blur-md)); }
+.backdrop-blur-lg { backdrop-filter: blur(var(--blur-lg)); }
+.backdrop-blur-xl { backdrop-filter: blur(var(--blur-xl)); }
+.backdrop-blur-2xl { backdrop-filter: blur(var(--blur-2xl)); }
+.backdrop-blur-3xl { backdrop-filter: blur(var(--blur-3xl)); }
+
+/* Brightness Sınıfları */
+.brightness-sm { filter: brightness(var(--brightness-sm)); }
+.brightness-md { filter: brightness(var(--brightness-md)); }
+.brightness-lg { filter: brightness(var(--brightness-lg)); }
+
+/* Saturate Sınıfları */
+.saturate-sm { filter: saturate(var(--saturate-sm)); }
+.saturate-md { filter: saturate(var(--saturate-md)); }
+.saturate-lg { filter: saturate(var(--saturate-lg)); }
+.saturate-xl { filter: saturate(var(--saturate-xl)); }
+
+/* Opacity Sınıfları */
+.opacity-sm { opacity: var(--opacity-sm); }
+.opacity-md { opacity: var(--opacity-md); }
+.opacity-lg { opacity: var(--opacity-lg); }
+.opacity-xl { opacity: var(--opacity-xl); }
+.opacity-2xl { opacity: var(--opacity-2xl); }
+
+/* ========================================
+   Z-INDEX SİSTEMİ
+   ======================================== */
+
+.z-dropdown { z-index: var(--z-dropdown); }
+.z-sticky { z-index: var(--z-sticky); }
+.z-fixed { z-index: var(--z-fixed); }
+.z-modal-backdrop { z-index: var(--z-modal-backdrop); }
+.z-modal { z-index: var(--z-modal); }
+.z-popover { z-index: var(--z-popover); }
+.z-tooltip { z-index: var(--z-tooltip); }
+
+/* ========================================
+   RESPONSIVE BREAKPOINT'LER
+   ======================================== */
+:root {
+  --breakpoint-xs: 360px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1200px;
+}
+
+/* ========================================
+   RESPONSIVE MEDIA QUERIES
+   ======================================== */
+/* Mobil - 360px ve altı */
+@media (max-width: 360px) {
+  :root {
+    --padding-xs: 6px;
+    --padding-sm: 8px;
+    --padding-md: 12px;
+    --padding-lg: 15px;
+    --padding-xl: 18px;
+    --padding-2xl: 24px;
+    --padding-3xl: 30px;
+    --padding-4xl: 40px;
+  }
+}
+
+/* Küçük mobil - 480px ve altı */
+@media (max-width: 480px) {
+  :root {
+    --padding-xs: 8px;
+    --padding-sm: 10px;
+    --padding-md: 15px;
+    --padding-lg: 20px;
+    --padding-xl: 24px;
+    --padding-2xl: 30px;
+    --padding-3xl: 40px;
+    --padding-4xl: 50px;
+  }
+}
+
+/* Tablet - 768px ve altı */
+@media (max-width: 768px) {
+  :root {
+    --padding-xs: 10px;
+    --padding-sm: 12px;
+    --padding-md: 16px;
+    --padding-lg: 20px;
+    --padding-xl: 24px;
+    --padding-2xl: 32px;
+    --padding-3xl: 40px;
+    --padding-4xl: 50px;
+  }
+}
+
+/* ========================================
+   DARK MODE DESTEĞİ (İLERİDE KULLANIM İÇİN)
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #ffffff;
+    --color-secondary: #a0a0a0;
+    --color-text: #e0e0e0;
+    --color-text-light: #808080;
+  }
+}

@@ -21,7 +21,7 @@ import CounterSection from '@/components/CounterSection.vue'
   max-width: 100%;
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: var(--gradient-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -33,25 +33,25 @@ import CounterSection from '@/components/CounterSection.vue'
   .page-container {
     max-width: 480px;
     margin: 0 auto;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px var(--shadow-light);
   }
 }
 
 /* Component arası boşlukları kaldır ve arka planları sıfırla */
-.page-container > * {
+.page-container>* {
   margin: 0;
   border-radius: 0;
   background: transparent !important;
 }
 
 /* Hero section yüksekliği */
-.page-container > *:first-child {
+.page-container>*:first-child {
   height: 75vh;
   min-height: 75vh;
 }
 
 /* İlk component hariç üst margin ekle */
-.page-container > *:not(:first-child) {
+.page-container>*:not(:first-child) {
   margin-top: 0;
 }
 
