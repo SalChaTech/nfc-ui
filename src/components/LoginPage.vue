@@ -34,163 +34,90 @@
       <button
         class="google-signin-btn"
         :class="{ loading: isLoading }"
-        @click="signInWithGoogle"
+        @click="loginWithGoogle"
         :disabled="isLoading"
       >
         <div class="google-icon"></div>
         <span v-if="!isLoading">Google ile Giriş Yap</span>
         <span v-else>Giriş Yapılıyor...</span>
       </button>
-
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import axios from 'axios'
 import { useRouter } from 'vue-router'
 
-export default {
-  name: 'LoginPage',
-  setup() {
-    const router = useRouter()
-    const isLoading = ref(false)
-    const logoIcon = ref('✨')
+const router = useRouter()
+const user = ref(null)
+const isLoading = ref(false)
+const logoIcon = ref('✨')
 
-    // App bilgileri - bu değerleri props olarak da geçebilirsiniz
-    const appTitle = ref('Hoş Geldiniz')
-    const appSubtitle = ref('Hesabınıza giriş yapın')
+// App bilgileri
+const appTitle = ref('Hoş Geldiniz')
+const appSubtitle = ref('Hesabınıza giriş yapın')
 
-    // Floating shapes data
-    const floatingShapes = reactive(Array(4).fill({}))
+// Floating shapes & light beams
+const floatingShapes = reactive(Array(4).fill({}))
+const lightBeams = reactive(Array(6).fill({}))
 
-    // Light beams data
-    const lightBeams = reactive(Array(6).fill({}))
+// Logo animasyonu
+const logoIcons = ['✨', '🚀', '💫', '⚡', '🎯']
+let iconIndex = 0
+const logoAnimation = () => {
+  iconIndex = (iconIndex + 1) % logoIcons.length
+  logoIcon.value = logoIcons[iconIndex]
+}
 
-    // Logo animasyonu için
-    const logoIcons = ['✨', '🚀', '💫', '⚡', '🎯']
-    let iconIndex = 0
+// Backend-mediated Google login
+const loginWithGoogle = () => {
+  isLoading.value = true
+  window.location.href = 'http://localhost:8080/auth/google'
+}
 
-    const logoAnimation = () => {
-      iconIndex = (iconIndex + 1) % logoIcons.length
-      logoIcon.value = logoIcons[iconIndex]
+// Kullanıcıyı kontrol et, login olmuşsa upload sayfasına yönlendir
+const checkUser = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/auth/me', { withCredentials: true })
+    if (res.data) {
+      user.value = res.data
+      router.push('/upload')
     }
-
-    // Google OAuth giriş fonksiyonu
-    const signInWithGoogle = async () => {
-      isLoading.value = true
-
-      try {
-        // Google OAuth konfigürasyonu
-        const googleOAuthConfig = {
-          clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
-          redirectUri: `${window.location.origin}/auth/callback`,
-          scope: 'openid email profile',
-          responseType: 'code',
-          state: generateStateToken()
-        }
-
-        const googleOAuthURL = buildOAuthURL(googleOAuthConfig)
-
-        // Geliştirme modunda demo göster
-        if (import.meta.env.MODE === 'development' && !import.meta.env.VITE_GOOGLE_CLIENT_ID) {
-          await simulateLogin()
-          return
-        }
-
-        // Prod'da Google'a yönlendir
-        window.location.href = googleOAuthURL
-
-      } catch (error) {
-        console.error('Google giriş hatası:', error)
-        // Hata handling burada yapılabilir
-      } finally {
-        isLoading.value = false
-      }
-    }
-
-    // OAuth URL oluştur
-    const buildOAuthURL = (config) => {
-      const params = new URLSearchParams({
-        client_id: config.clientId,
-        redirect_uri: config.redirectUri,
-        response_type: config.responseType,
-        scope: config.scope,
-        state: config.state
-      })
-
-      return `https://accounts.google.com/oauth/authorize?${params.toString()}`
-    }
-
-    // Güvenlik token oluştur
-    const generateStateToken = () => {
-      return Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15)
-    }
-
-    // Development modunda demo giriş
-    const simulateLogin = () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Mock user data
-          const mockUser = {
-            id: '1',
-            name: 'Demo User',
-            email: 'demo@example.com',
-            picture: 'https://via.placeholder.com/150'
-          }
-
-          // localStorage'a kaydet (gerçek uygulamada token kullanın)
-          localStorage.setItem('user', JSON.stringify(mockUser))
-
-          // Giriş başarılı mesajı
-          alert('Giriş başarılı!')
-          resolve()
-        }, 2000)
-      })
-    }
-
-    // Keyboard navigation
-    const handleKeydown = (e) => {
-      if (e.key === 'Enter' && !isLoading.value) {
-        signInWithGoogle()
-      }
-    }
-
-    // Lifecycle hooks
-    onMounted(() => {
-      document.addEventListener('keydown', handleKeydown)
-      // Sayfa yüklendiğinde animasyon başlat
-      document.body.style.overflow = 'hidden'
-    })
-
-    onUnmounted(() => {
-      document.removeEventListener('keydown', handleKeydown)
-      document.body.style.overflow = 'auto'
-    })
-
-    return {
-      isLoading,
-      logoIcon,
-      appTitle,
-      appSubtitle,
-      floatingShapes,
-      lightBeams,
-      logoAnimation,
-      signInWithGoogle
-    }
+  } catch (err) {
+    console.log('Kullanıcı login değil veya JWT yok', err)
   }
 }
+
+// Klavye navigasyonu
+const handleKeydown = (e) => {
+  if (e.key === 'Enter' && !isLoading.value) {
+    loginWithGoogle()
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  checkUser()
+  document.addEventListener('keydown', handleKeydown)
+  document.body.style.overflow = 'hidden'
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = 'auto'
+})
 </script>
+
 
 <style scoped>
 .login-page {
   min-height: 100vh;
   width: 100vw;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background:
-    linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%),
-    url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80') center/cover no-repeat;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%),
+  url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,20 +199,19 @@ export default {
 .light-beam {
   position: absolute;
   background: linear-gradient(45deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.3) 40%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.3) 60%,
-    rgba(255, 255, 255, 0.1) 80%,
-    transparent 100%);
+  transparent 0%,
+  rgba(255, 255, 255, 0.1) 20%,
+  rgba(255, 255, 255, 0.3) 40%,
+  rgba(255, 255, 255, 0.4) 50%,
+  rgba(255, 255, 255, 0.3) 60%,
+  rgba(255, 255, 255, 0.1) 80%,
+  transparent 100%);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   animation: lightBeamMove 12s linear infinite;
   border-radius: 50px;
-  box-shadow:
-    0 0 20px rgba(255, 255, 255, 0.2),
-    0 0 40px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2),
+  0 0 40px rgba(255, 255, 255, 0.1);
   opacity: 0.8;
   transform-origin: center;
 }
@@ -374,11 +300,10 @@ export default {
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border-radius: 32px;
   padding: 48px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 32px 64px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+  0 32px 64px rgba(0, 0, 0, 0.05),
+  inset 0 1px 0 rgba(255, 255, 255, 0.4),
+  inset 0 -1px 0 rgba(255, 255, 255, 0.1);
   width: 100%;
   max-width: 420px;
   position: relative;
@@ -396,11 +321,11 @@ export default {
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.25) 0%,
-    rgba(255, 255, 255, 0.1) 25%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0.1) 75%,
-    rgba(255, 255, 255, 0.15) 100%);
+  rgba(255, 255, 255, 0.25) 0%,
+  rgba(255, 255, 255, 0.1) 25%,
+  rgba(255, 255, 255, 0.05) 50%,
+  rgba(255, 255, 255, 0.1) 75%,
+  rgba(255, 255, 255, 0.15) 100%);
   border-radius: 32px;
   pointer-events: none;
   z-index: -1;
@@ -414,10 +339,10 @@ export default {
   right: -2px;
   bottom: -2px;
   background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.6),
-    rgba(255, 255, 255, 0.2),
-    rgba(255, 255, 255, 0.1),
-    rgba(255, 255, 255, 0.3));
+  rgba(255, 255, 255, 0.6),
+  rgba(255, 255, 255, 0.2),
+  rgba(255, 255, 255, 0.1),
+  rgba(255, 255, 255, 0.3));
   border-radius: 34px;
   z-index: -2;
   filter: blur(1px);
@@ -497,11 +422,10 @@ export default {
   justify-content: center;
   gap: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 1px 4px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08),
+  0 1px 4px rgba(0, 0, 0, 0.04),
+  inset 0 1px 0 rgba(255, 255, 255, 0.6),
+  inset 0 -1px 0 rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.4);
   position: relative;
   overflow: hidden;
@@ -510,11 +434,10 @@ export default {
 .google-signin-btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   background: rgba(255, 255, 255, 0.3);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
+  0 2px 8px rgba(0, 0, 0, 0.06),
+  inset 0 1px 0 rgba(255, 255, 255, 0.8),
+  inset 0 -1px 0 rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
@@ -550,8 +473,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 
@@ -605,11 +532,11 @@ export default {
 
   .login-container::before {
     background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(255, 255, 255, 0.05) 75%,
-      rgba(255, 255, 255, 0.08) 100%);
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.05) 75%,
+    rgba(255, 255, 255, 0.08) 100%);
   }
 
   .google-signin-btn {
@@ -633,16 +560,15 @@ export default {
 
   .light-beam {
     background: linear-gradient(45deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.05) 20%,
-      rgba(255, 255, 255, 0.15) 40%,
-      rgba(255, 255, 255, 0.2) 50%,
-      rgba(255, 255, 255, 0.15) 60%,
-      rgba(255, 255, 255, 0.05) 80%,
-      transparent 100%);
-    box-shadow:
-      0 0 15px rgba(255, 255, 255, 0.1),
-      0 0 30px rgba(255, 255, 255, 0.05);
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.15) 40%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.15) 60%,
+    rgba(255, 255, 255, 0.05) 80%,
+    transparent 100%);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1),
+    0 0 30px rgba(255, 255, 255, 0.05);
   }
 }
 </style>
