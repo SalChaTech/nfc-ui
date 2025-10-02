@@ -68,14 +68,38 @@ const props = defineProps({
   editable: {
     type: Boolean,
     default: false
+  },
+  hero_image: {
+    type: Object,  // `String` yerine `Object` tipi kullanacağız
+    default: () => ({
+      id: null,
+      name: null,
+      url: null
+    })
   }
 })
 
+const emit = defineEmits(['update:data'])
+const emitData = (type) => {
+  if (type === 'names') {
+    emit('update:data', { names: { ...names } })
+  } else if (type === 'image') {
+    emit('update:data', { image: currentImage.value })
+  } else if (type === 'date') {
+    emit('update:data', { date: selectedDate.value })
+  }
+}
+// const emitData = () => {
+//   emit('update:data', {
+//     names: { ...names },
+//     date: selectedDate.value,
+//     image: currentImage.value
+//   })
+// }
 
 
 
-const currentImage = ref(hero)
-
+const currentImage = ref(props.hero_image?.url || hero)
 // Reactive names data
 const names = reactive({
   first: 'Çağla',
@@ -130,6 +154,7 @@ const saveName = (nameType) => {
     }
   }
   editingName.value = null
+  emitData('names')
 }
 
 // Methods for date picker
@@ -160,9 +185,8 @@ const updateDate = (event) => {
     const date = new Date(selectedDate.value)
     const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
     day.value = days[date.getDay()]
-
-    // Store'a tarihi kaydet
     setStoreDate(selectedDate.value)
+    emitData('date')
   }
 }
 
@@ -179,6 +203,7 @@ const handleImageUpload = (event) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       currentImage.value = e.target.result
+      emitData('image')
     }
     reader.readAsDataURL(file)
   }
@@ -198,6 +223,11 @@ const selectAllText = (element) => {
 
 // Component mount edildiğinde başlangıç tarihini store'a kaydet
 onMounted(() => {
+  // if (props.hero_image) {
+  //   currentImage.value = props.hero_image
+  // }else {
+  //   currentImage.value = hero
+  // }
   setStoreDate(selectedDate.value)
 })
 </script>

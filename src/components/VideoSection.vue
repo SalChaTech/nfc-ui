@@ -9,11 +9,16 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['update:video'])
+const emitVideo = () => {
+  emit('update:video', videoFile.value)
+}
+
 const videoRef = ref(null)
 const isPlaying = ref(false)
 const videoFile = ref(null)
 const showModal = ref(false)
-
+const switchVideoVisible = ref(true)
 // Editable title
 const title = ref('Ölümsüz An')
 const isEditingTitle = ref(false)
@@ -28,6 +33,7 @@ function handleVideoUpload(event: any) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('video/')) {
     videoFile.value = URL.createObjectURL(file)
+    emitVideo()
   }
 }
 
@@ -63,6 +69,7 @@ function closeVideoModal() {
 
 function removeVideo() {
   videoFile.value = null
+  emitVideo()
   showModal.value = false
 }
 
@@ -111,7 +118,8 @@ function selectAllText(element: HTMLElement) {
 
 <template>
   <div class="video-section">
-    <div class="video-header">
+
+    <div v-if="switchVideoVisible" class="video-header">
       <h2 class="editable" @click="props.editable ? editTitle : null"
           @blur="props.editable ? saveTitle : null"
           @keydown.enter="props.editable ? saveTitle : null"
@@ -120,7 +128,7 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video oynatıcı -->
-    <div v-if="videoFile" class="video-wrapper">
+    <div  v-if="videoFile && switchVideoVisible" class="video-wrapper">
       <video class="video-player" :src="videoFile" @ended="onVideoEnded" @play="isPlaying = true"
              @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
         Tarayıcınız video oynatmayı desteklemiyor.
@@ -150,6 +158,12 @@ function selectAllText(element: HTMLElement) {
     <input type="file" ref="videoRef"  @change="props.editable ? handleVideoUpload : null" accept="video/*"
            style="display: none;" />
 
+    <v-switch
+      v-model="switchVideoVisible"
+      hide-details
+      inset
+    ></v-switch>
+
     <!-- Video modal -->
     <div v-if="showModal" class="video-modal" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
@@ -163,7 +177,6 @@ function selectAllText(element: HTMLElement) {
 </template>
 
 <style scoped>
-/* Font import'ları artık theme.css'de */
 
 .video-section {
   background: var(--gradient-primary);

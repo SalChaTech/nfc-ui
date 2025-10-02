@@ -2,7 +2,7 @@
   <div class="gallery-container mt-4">
     <!-- Ana büyük fotoğraf (sol taraf) -->
     <div class="main-photo" @click="props.editable ? itemClickHandler(photos[0], 0) : null">
-      <img :src="photos[0].source" alt="Ana düğün fotoğrafı" />
+      <img :src="photos[0]?.url || g1Image" alt="Ana düğün fotoğrafı" />
       <div class="photo-border"></div>
     </div>
 
@@ -10,13 +10,13 @@
     <div class="right-photos">
       <!-- Üst sağ fotoğraf -->
       <div class="top-photo" @click="props.editable ? itemClickHandler(photos[1], 1) : null">
-        <img :src="photos[1].source" alt="Düğün anı" />
+        <img :src="photos[1]?.url || g2Image" alt="Düğün anı" />
         <div class="photo-border"></div>
       </div>
 
       <!-- Alt sağ fotoğraf -->
       <div class="bottom-photo" @click="props.editable ? itemClickHandler(photos[2], 2) : null">
-        <img :src="photos[2].source" alt="Çift anı" />
+        <img :src="photos[2]?.url || g3Image" alt="Çift anı" />
         <div class="photo-border"></div>
       </div>
     </div>
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import g1Image from '../assets/g3.jpg'
 import g2Image from '../assets/g2.jpg'
 import g3Image from '../assets/g1.jpg'
@@ -37,14 +37,20 @@ const props = defineProps({
   editable: {
     type: Boolean,
     default: false
+  },
+  special_gallery_photos: {
+    type: Array,
+    default: () => []
   }
 })
 
-const photos = ref([
-  { source: g1Image },
-  { source: g2Image },
-  { source: g3Image }
-])
+const photos = ref(props.special_gallery_photos);
+
+const emit = defineEmits(['update:special_gallery_photos'])
+
+const emitPhotos = () => {
+  emit('update:special_gallery_photos', photos.value)
+}
 
 const photoInputRef = ref(null)
 const selectedPhotoIndex = ref(0)
@@ -64,11 +70,14 @@ function handlePhotoChange(event: any) {
     const reader = new FileReader()
     reader.onload = (e: any) => {
       // Tıklanan fotoğrafı değiştir
-      photos.value[selectedPhotoIndex.value].source = e.target.result
+      photos.value[selectedPhotoIndex.value].url = e.target.result
+      emitPhotos()
     }
     reader.readAsDataURL(file)
   }
+
 }
+
 </script>
 
 <style scoped>
