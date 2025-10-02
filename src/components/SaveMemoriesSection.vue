@@ -30,6 +30,8 @@ const uploadToDrive = async () => {
     console.log('hero : ',props.memoriesData.hero.image);
     console.log('special-1 : ',props.memoriesData.specialGalleryPhotos[0]);
     console.log('special-2 : ',props.memoriesData.specialGalleryPhotos[1]);
+    console.log('special-3 : ',props.memoriesData.specialGalleryPhotos[1]);
+    console.log('video : ',props.memoriesData.weddingVideo);
 
 
   //   // --- Hero image ---

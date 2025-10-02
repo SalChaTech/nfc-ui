@@ -125,6 +125,7 @@ function selectAllText(element: HTMLElement) {
           @keydown.enter="props.editable ? saveTitle : null"
           :contenteditable="props.editable ? isEditingTitle : null"
           ref="titleRef">{{ title }}</h2>
+
     </div>
 
     <!-- Video oynatıcı -->
@@ -147,7 +148,7 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video yükleme alanı -->
-    <div v-else class="video-upload-area" @click="triggerVideoUpload">
+    <div v-if="switchVideoVisible && !videoFile"  class="video-upload-area" @click="triggerVideoUpload">
       <div class="upload-content">
         <div class="upload-icon">+</div>
         <div class="upload-text">Video Yükle</div>
@@ -158,14 +159,18 @@ function selectAllText(element: HTMLElement) {
     <input type="file" ref="videoRef"  @change="props.editable ? handleVideoUpload : null" accept="video/*"
            style="display: none;" />
 
-    <v-switch
-      v-model="switchVideoVisible"
-      hide-details
-      inset
-    ></v-switch>
+    <div class="flex items-center gap-6">
+      <h3 class="mr-4 font-primary ">Video Yükleme Alanı</h3>
+      <v-switch
+        v-model="switchVideoVisible"
+        hide-details
+        inset
+      ></v-switch>
+    </div>
+
 
     <!-- Video modal -->
-    <div v-if="showModal" class="video-modal" @click="closeVideoModal">
+    <div  v-if="showModal && switchVideoVisible" class="video-modal" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
         <button class="close-btn" @click="closeVideoModal">&times;</button>
         <video class="modal-video" :src="videoFile" controls autoplay>

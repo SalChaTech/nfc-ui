@@ -49,7 +49,11 @@ const photos = ref(props.special_gallery_photos);
 const emit = defineEmits(['update:special_gallery_photos'])
 
 const emitPhotos = () => {
-  emit('update:special_gallery_photos', photos.value)
+  const filteredPhotos = photos.value.filter((photo: any) => {
+    return photo.url && photo.url.startsWith('data:image');
+  });
+
+  emit('update:special_gallery_photos', filteredPhotos);
 }
 
 const photoInputRef = ref(null)
