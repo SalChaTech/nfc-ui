@@ -1,30 +1,41 @@
 <template>
   <div class="page-container">
     <div v-if="!allFetched">
-      <LoadingProcess/>
+      <LoadingProcess />
     </div>
     <div v-else>
-    <HeroSection v-if="heroFetched" :editable="editable" @update:data="onHeroDataUpdate"
-                 :hero_image="heroImage">
+      <HeroSection v-if="heroFetched" :editable="editable" @update:data="onHeroDataUpdate"
+                   :hero_image="heroImage">
 
-    </HeroSection>
-    <SpecialGallerySection v-if="specialGalleryFetched" :editable="editable"
-                           @update:special_gallery_photos="handleSpecialGalleryPhotosUpdate"
-                           :special_gallery_photos="specialGalleryPhotos"></SpecialGallerySection>
-    <VideoSection v-if="videoFetched" :editable="editable" @update:video="handleWeddingVideoUpdate"
-                  :video="video"></VideoSection>
-    <CounterSection></CounterSection>
-    <CommonGalerySection v-if="commonGalleryFetched" :editable="editable"
-                         @update:added_common_gallery_photos="handleAddedCommonGalleryPhotosUpdate"
-                         @update:deleted_common_gallery_photos="handleDeletedCommonGalleryPhotosUpdate"
-                         :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
-    <SaveMemoriesSection :memoriesData="memoriesData"></SaveMemoriesSection>
+      </HeroSection>
+      <div class="mt-16">
+        <SpecialGallerySection v-if="specialGalleryFetched" :editable="editable"
+                               @update:special_gallery_photos="handleSpecialGalleryPhotosUpdate"
+                               :special_gallery_photos="specialGalleryPhotos"></SpecialGallerySection>
+      </div>
+      <div class="mt-16">
+        <VideoSection v-if="videoFetched" :editable="editable"
+                      @update:video="handleWeddingVideoUpdate"
+                      :video="video"></VideoSection>
+      </div>
+      <div class="mt-16">
+        <CounterSection></CounterSection>
+      </div>
+      <div class="mt-16">
+        <CommonGalerySection v-if="commonGalleryFetched" :editable="editable"
+                             @update:added_common_gallery_photos="handleAddedCommonGalleryPhotosUpdate"
+                             @update:deleted_common_gallery_photos="handleDeletedCommonGalleryPhotosUpdate"
+                             :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
+      </div>
+      <div class="mt-16">
+      <SaveMemoriesSection :memoriesData="memoriesData"></SaveMemoriesSection>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import LoadingProcess from '../components/LoadingProcess.vue';
+import LoadingProcess from '../components/LoadingProcess.vue'
 import HeroSection from '../components/HeroSection.vue'
 import SpecialGallerySection from '../components/SpecialGallerySection.vue'
 import CommonGalerySection from '@/components/CommonGalerySection.vue'
@@ -132,10 +143,12 @@ onMounted(async () => {
     )
     if (heroFile) {
 
+      console.log('Hero file :', heroFile)
+
       heroImage.value = {
         id: heroFile.id,
         name: heroFile.name,
-        url: `https://lh3.googleusercontent.com/d/${heroFile.id}?t=${new Date().getTime()}`
+        url: `https://lh3.googleusercontent.com/d/${heroFile.id}`
       }
     }
 
@@ -209,6 +222,7 @@ onMounted(async () => {
 
 <style scoped>
 .page-container {
+  min-width: 100%;
   max-width: 100%;
   margin: 0;
   padding: 0;
@@ -217,6 +231,14 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.page-container > * {
+  margin-bottom: 24px;
+}
+
+.page-container > *:last-child {
+  margin-bottom: 0;
 }
 
 /* Desktop'ta mobil genişliğinde göster */
@@ -228,28 +250,5 @@ onMounted(async () => {
   }
 }
 
-/* Component arası boşlukları kaldır ve arka planları sıfırla */
-.page-container > * {
-  margin: 0;
-  border-radius: 0;
-  background: transparent !important;
-}
 
-/* Hero section yüksekliği */
-.page-container > *:first-child {
-  height: 75vh;
-  min-height: 75vh;
-}
-
-/* İlk component hariç üst margin ekle */
-.page-container > *:not(:first-child) {
-  margin-top: 0;
-}
-
-/* Mobil uyumluluk için */
-@media (max-width: 768px) {
-  .page-container {
-    padding: 0;
-  }
-}
 </style>

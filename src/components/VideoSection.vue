@@ -130,6 +130,20 @@ function selectAllText(element: HTMLElement) {
 <template>
   <div class="video-section">
 
+    <!-- Video görünürlük kontrolü -->
+    <div v-if="props.editable" class="video-controls">
+      <div class="control-item">
+        <label class="control-label">
+          <input
+            type="checkbox"
+            v-model="switchVideoVisible"
+            class="control-checkbox"
+          />
+          <span class="control-text">Video Bölümünü Göster</span>
+        </label>
+      </div>
+    </div>
+
     <div v-if="switchVideoVisible" class="video-header">
       <h2 class="editable" @click="props.editable ? editTitle : null"
           @blur="props.editable ? saveTitle : null"
@@ -172,15 +186,6 @@ function selectAllText(element: HTMLElement) {
     <input type="file" ref="videoRef" @change="handleVideoUpload" accept="video/*"
            style="display: none;" />
 
-    <div class="flex items-center gap-6">
-      <h3 class="mr-4 font-primary ">Video Yükleme Alanı</h3>
-      <v-switch
-        v-model="switchVideoVisible"
-        hide-details
-        inset
-      ></v-switch>
-    </div>
-
 
     <!-- Video modal -->
     <div v-if="showModal && switchVideoVisible" class="video-modal" @click="closeVideoModal">
@@ -197,7 +202,7 @@ function selectAllText(element: HTMLElement) {
 <style scoped>
 
 .video-section {
-  background: var(--gradient-primary);
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -207,7 +212,7 @@ function selectAllText(element: HTMLElement) {
 
 .video-header {
   text-align: center;
-  margin-bottom: var(--padding-xl);
+  margin-bottom: var(--padding-sm);
 }
 
 .video-header h2 {
@@ -474,6 +479,52 @@ function selectAllText(element: HTMLElement) {
   .upload-text {
     font-size: 1.2rem;
   }
+}
+
+/* Video kontrol stilleri */
+.video-controls {
+  padding: var(--padding-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-label {
+  display: flex;
+  align-items: center;
+  gap: var(--padding-sm);
+  cursor: pointer;
+  transition: var(--transition-normal) var(--ease-in-out);
+  padding: var(--padding-sm) var(--padding-md);
+  border-radius: var(--radius-lg);
+}
+
+.control-label:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.control-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  transform: scale(1.2);
+}
+
+.control-text {
+  font-family: var(--font-secondary);
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  user-select: none;
 }
 
 /* Çok küçük ekranlar için */

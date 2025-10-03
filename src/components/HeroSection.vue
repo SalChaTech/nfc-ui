@@ -247,15 +247,19 @@ onMounted(() => {
 
 .hero-container {
   position: relative;
+  min-height: 75vh;
   width: 100%;
-  height: 60vh;
   overflow: hidden;
 }
 
 .hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;   /* containeri her zaman kaplasın */
+  object-position: center;
   cursor: pointer;
   transition: all 0.3s ease;
 }

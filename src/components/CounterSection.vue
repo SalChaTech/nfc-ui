@@ -186,7 +186,7 @@ function selectAllText(element: HTMLElement) {
 
 /* Sayaç bölümü */
 .counter-section {
-  background: var(--gradient-primary);
+  background: transparent;
   padding: var(--padding-lg) var(--padding-2xl);
   margin: 0;
   text-align: center;
