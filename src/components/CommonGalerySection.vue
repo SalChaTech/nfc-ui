@@ -1,18 +1,61 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 
 const props = defineProps({
   editable: {
     type: Boolean,
     default: false
+  },
+  common_gallery_photos: {
+    type: Array,
+    default: () => []
   }
 })
 
 import g4Image from '../assets/g4.jpg'
 import g5Image from '../assets/g5.jpg'
 
+const serverPhotos = ref(props.common_gallery_photos)
+const localPhotos = ref<Photo[]>(
+  props.common_gallery_photos.length === 0
+    ? [
+      {
+        id: null,
+        name: 'local-g4',
+        url: g4Image
+      },
+      {
+        id: null,
+        name: 'local-g5',
+        url: g5Image
+      }
+    ]
+    : []
+)
 
-const photos = ref([{ source: g4Image }, { source: g5Image }])
+const deletedPhotos = ref<Photo[]>([])
+
+const allPhotos = computed(() => [
+  ...serverPhotos.value,
+  ...localPhotos.value
+])
+
+
+const emit = defineEmits<{
+  (e: 'update:added_common_gallery_photos', photos: Photo[]): void
+  (e: 'update:deleted_common_gallery_photos', photos: Photo[]): void
+}>()
+
+// localPhotos değiştikçe emit et
+watch(localPhotos, (newVal) => {
+  emit('update:added_common_gallery_photos', newVal)
+}, { deep: true })
+
+// deletedPhotos değiştikçe emit et
+watch(deletedPhotos, (newVal) => {
+  emit('update:deleted_common_gallery_photos', newVal)
+}, { deep: true })
+
 const imageUploadRef = ref(null)
 const selectedPhoto = ref(null)
 const showModal = ref(false)
@@ -40,7 +83,11 @@ function handleImageUpload(event: any) {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = (e: any) => {
-          photos.value.push({ source: e.target.result })
+          localPhotos.value.push({
+            id: null,                       // Local dosyalara id yok
+            name: `local-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Dosya adı
+            url: e.target.result            // Base64 veya blob URL
+          })
         }
         reader.readAsDataURL(file)
       }
@@ -49,7 +96,24 @@ function handleImageUpload(event: any) {
 }
 
 function removePhoto(index: number) {
-  photos.value.splice(index, 1)
+
+  const photo = allPhotos.value[index]
+
+  if (!photo) return
+
+  // Server’dan gelen foto ise
+  const serverIndex = serverPhotos.value.findIndex(p => p.id === photo.id)
+  if (serverIndex !== -1) {
+    deletedPhotos.value.push(photo)       // backend’e silinecekler için kaydet
+    serverPhotos.value.splice(serverIndex, 1) // server listeden çıkar
+    return
+  }
+
+  // Local’den gelen foto ise
+  const localIndex = localPhotos.value.findIndex(p => p.url === photo.url)
+  if (localIndex !== -1) {
+    localPhotos.value.splice(localIndex, 1)
+  }
 }
 
 function nextPhoto() {
@@ -95,9 +159,9 @@ onUnmounted(() => {
 
     <div class="gallery-grid">
       <!-- Mevcut fotoğraflar -->
-      <div v-for="(photo, index) in photos" :key="index" class="gallery-item"
+      <div v-for="(photo, index) in allPhotos" :key="index" class="gallery-item"
            @click="itemClickHandler(photo, index)">
-        <img :src="photo.source" :alt="`Fotoğraf ${index + 1}`" />
+        <img :src="photo.url" :alt="`Fotoğraf ${index + 1}`" />
         <button class="remove-btn" @click.stop="props.editable ? removePhoto(index) : null"
                 v-if="props.editable"
                 title="Fotoğrafı kaldır">
@@ -134,17 +198,17 @@ onUnmounted(() => {
         </button>
 
         <!-- Sağ ok butonu -->
-        <button v-if="selectedPhoto && selectedPhoto.index < photos.length - 1"
+        <button v-if="selectedPhoto && selectedPhoto.index < allPhotos.length - 1"
                 class="nav-btn nav-next"
                 @click="nextPhoto" title="Sonraki fotoğraf">
           ›
         </button>
 
-        <img :src="selectedPhoto?.source" :alt="`Fotoğraf ${selectedPhoto?.index + 1}`" />
+        <img :src="selectedPhoto?.url" :alt="`Fotoğraf ${selectedPhoto?.index + 1}`" />
 
         <!-- Fotoğraf sayacı -->
         <div class="photo-counter">
-          {{ (selectedPhoto?.index || 0) + 1 }} / {{ photos.length }}
+          {{ (selectedPhoto?.index || 0) + 1 }} / {{ allPhotos.length }}
         </div>
       </div>
     </div>

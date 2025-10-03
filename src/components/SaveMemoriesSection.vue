@@ -23,7 +23,8 @@ const props = defineProps<{
       id?: string
     }
     specialGalleryPhotos: Photo[]  // Bu da bir Photo array olacak
-    commonGalleryPhotos: any[]  // Burası sizin ihtiyaçlarınıza göre değişebilir
+    addedCommonGalleryPhotos: any[]  // Burası sizin ihtiyaçlarınıza göre değişebilir
+    deletedCommonGalleryPhotos: any[]  // Burası sizin ihtiyaçlarınıza göre değişebilir
     weddingVideo: Video
   }
 }>()
@@ -38,7 +39,9 @@ const uploadToDrive = async () => {
     console.log('special-1 : ', props.memoriesData.specialGalleryPhotos[0])
     console.log('special-2 : ', props.memoriesData.specialGalleryPhotos[1])
     console.log('special-3 : ', props.memoriesData.specialGalleryPhotos[1])
-    console.log('video : ', props.memoriesData.weddingVideo.name)
+    console.log('video : ', props.memoriesData.weddingVideo?.name)
+    console.log('added common gallery : ', props.memoriesData.addedCommonGalleryPhotos)
+    console.log('deleted common gallery : ', props.memoriesData.deletedCommonGalleryPhotos)
 
     if (props.memoriesData.hero.image != undefined) {
       const file = props.memoriesData.hero.image
@@ -109,6 +112,42 @@ const uploadToDrive = async () => {
       console.log('Başarıyla yüklendi:', file.fileName, response.data)
 
     }
+
+
+    if (props.memoriesData.addedCommonGalleryPhotos != undefined) {
+      for (const photo of props.memoriesData.addedCommonGalleryPhotos) {
+        const file = photo
+        const res = await fetch(file.url)
+        const blob = await res.blob()
+        let fileName = file.name || 'untitled'
+        if (!fileName.includes('.')) {
+          // Eğer uzantı yoksa blob.type'dan al
+          const extension = blob.type ? '.' + blob.type.split('/')[1] : ''
+          fileName += extension
+        }
+        const uploadFile = new File([blob], fileName, { type: blob.type })
+        const formData = new FormData()
+        formData.append('file', uploadFile)
+        if (file.id) formData.append('fileId', file.id)
+        formData.append('toUploadSubfolder', true)
+        const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        console.log('Başarıyla yüklendi:', file.fileName, response.data)
+      }
+    }
+
+    if (props.memoriesData.deletedCommonGalleryPhotos != undefined) {
+      for (const photo of props.memoriesData.deletedCommonGalleryPhotos) {
+        const file = photo
+        const response = await axios.delete(`http://localhost:8080/api/drive/files/${file.id}`,  {
+          withCredentials: true,
+        })
+        console.log('Başarıyla silindi:', response.data)
+      }
+    }
+
 
     // const file = props.memoriesData.hero.image
     // const res = await fetch(file.url)

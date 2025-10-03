@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import g1Image from '../assets/g3.jpg'
 import g2Image from '../assets/g2.jpg'
 import g3Image from '../assets/g1.jpg'
@@ -98,17 +98,20 @@ function handlePhotoChange(event: any) {
 
 }
 
-onMounted(() => {
-  if (!props.special_gallery_photos || props.special_gallery_photos.length === 0) {
-    photos.value = [...defaultPhotos]
-  } else {
-    // props'dan gelenleri name'e göre eşleştir
-    photos.value = defaultPhotos.map(def => {
-      const matched = props.special_gallery_photos.find((p: Photo) => p.name.startsWith(def.name))
-      return matched ? { ...matched } : def
-    })
-  }
-})
+watch(
+  () => props.special_gallery_photos,
+  (newPhotos) => {
+    if (!newPhotos || newPhotos.length === 0 || newPhotos.every(p => p === null)) {
+      photos.value = [...defaultPhotos]
+    } else {
+      photos.value = defaultPhotos.map(def => {
+        const matched = newPhotos.find((p: Photo) => p && p.name?.startsWith(def.name))
+        return matched ? { ...matched } : def
+      })
+    }
+  },
+  { immediate: true } // component mount olduğunda da çalışsın
+)
 
 </script>
 

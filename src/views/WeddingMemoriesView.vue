@@ -1,21 +1,30 @@
 <template>
   <div class="page-container">
+    <div v-if="!allFetched">
+      <LoadingProcess/>
+    </div>
+    <div v-else>
     <HeroSection v-if="heroFetched" :editable="editable" @update:data="onHeroDataUpdate"
                  :hero_image="heroImage">
 
     </HeroSection>
-    <SpecialGallerySection v-if="heroFetched" :editable="editable"
+    <SpecialGallerySection v-if="specialGalleryFetched" :editable="editable"
                            @update:special_gallery_photos="handleSpecialGalleryPhotosUpdate"
                            :special_gallery_photos="specialGalleryPhotos"></SpecialGallerySection>
-    <VideoSection v-if="videoFetched" :editable="editable" @update:video="handleWeddingVideoUpdate" :video="video"></VideoSection>
+    <VideoSection v-if="videoFetched" :editable="editable" @update:video="handleWeddingVideoUpdate"
+                  :video="video"></VideoSection>
     <CounterSection></CounterSection>
-    <CommonGalerySection :editable="editable"
-                         @update:special_gallery_photos="handleCommonGalleryPhotosUpdate"></CommonGalerySection>
+    <CommonGalerySection v-if="commonGalleryFetched" :editable="editable"
+                         @update:added_common_gallery_photos="handleAddedCommonGalleryPhotosUpdate"
+                         @update:deleted_common_gallery_photos="handleDeletedCommonGalleryPhotosUpdate"
+                         :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
     <SaveMemoriesSection :memoriesData="memoriesData"></SaveMemoriesSection>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import LoadingProcess from '../components/LoadingProcess.vue';
 import HeroSection from '../components/HeroSection.vue'
 import SpecialGallerySection from '../components/SpecialGallerySection.vue'
 import CommonGalerySection from '@/components/CommonGalerySection.vue'
@@ -23,7 +32,7 @@ import VideoSection from '@/components/VideoSection.vue'
 import CounterSection from '@/components/CounterSection.vue'
 import SaveMemoriesSection from '@/components/SaveMemoriesSection.vue'
 import { useRoute } from 'vue-router'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
 
 
@@ -41,6 +50,7 @@ interface Photo {
   name: string | null;
   url: string | null;
 }
+
 interface Video {
   id: string | null;
   name: string | null;
@@ -54,7 +64,8 @@ const memoriesData = reactive({
     image: null as Photo | null
   },
   specialGalleryPhotos: [] as Photo[],
-  commonGalleryPhotos: [] as Photo[],
+  addedCommonGalleryPhotos: [] as Photo[],
+  deletedCommonGalleryPhotos: [] as Photo[],
   weddingVideo: null as Video | null
 })
 
@@ -81,17 +92,27 @@ function handleWeddingVideoUpdate(updatedVideo: Video | null) {
 }
 
 
-function handleCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
-  memoriesData.commonGalleryPhotos = updatedPhotos
+function handleAddedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
+  memoriesData.addedCommonGalleryPhotos = updatedPhotos
+}
+
+function handleDeletedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
+  memoriesData.deletedCommonGalleryPhotos = updatedPhotos
 }
 
 const heroFetched = ref(false)
 const specialGalleryFetched = ref(false)
 const videoFetched = ref(false)
+const commonGalleryFetched = ref(false)
+
+const allFetched = computed(() =>
+  heroFetched.value && specialGalleryFetched.value && videoFetched.value && commonGalleryFetched.value
+)
 
 const heroImage = ref<Photo | null>(null)
 const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
+const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 
 
 onMounted(async () => {
@@ -104,6 +125,7 @@ onMounted(async () => {
     })
     const files = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
+    console.log('All fetched files :', files)
 
     const heroFile = files.find(
       (f: any) => f.name.startsWith('hero-image')
@@ -154,6 +176,23 @@ onMounted(async () => {
       }
     }
 
+    const response2 = await axios.get('http://localhost:8080/api/drive/gallery-files', {
+      // headers: {
+      //   Authorization: 'Bearer ' + token, // token varsa
+      // },
+      withCredentials: true // cookie ile auth kullanıyorsan
+    })
+    const galleryFiles = response2.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
+
+    console.log('Gallery files :', galleryFiles)
+
+
+    commonGalleryPhotos.value = galleryFiles.map((f: any) => ({
+      id: f.id,
+      name: f.name,
+      url: `https://lh3.googleusercontent.com/d/${f.id}`
+    }))
+
   } catch (err) {
     console.error('Drive dosya çekme hatası:', err)
     memoriesData.hero.image = null
@@ -161,6 +200,7 @@ onMounted(async () => {
     heroFetched.value = true
     specialGalleryFetched.value = true
     videoFetched.value = true
+    commonGalleryFetched.value = true
   }
 })
 

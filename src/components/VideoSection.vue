@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import evlilikVideo from '../assets/say_yes.mp4'
 
 interface Video {
@@ -9,10 +9,7 @@ interface Video {
 }
 
 const props = defineProps<{
-  editable: {
-    type: Boolean,
-    default: false
-  }, video: Video | null
+  editable: boolean, video: Video | null
 }>()
 
 
@@ -24,7 +21,7 @@ const emitVideo = () => {
 const videoRef = ref(null)
 const isPlaying = ref(false)
 const videoFile = ref<Video>({
-  id: props.video?.id || "4",
+  id: props.video?.id || '4',
   name: props.video?.name || 'video',
   url: props.video?.url || evlilikVideo
 })
@@ -40,8 +37,8 @@ function handleVideoUpload(event: any) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('video/')) {
     videoFile.value = {
-      id: videoFile.value?.id || "4",      // eski id'yi koru
-      name: videoFile.value?.name || "video", // eski name varsa onu kullan, yoksa dosya adını al
+      id: videoFile.value?.id || '4',      // eski id'yi koru
+      name: videoFile.value?.name || 'video', // eski name varsa onu kullan, yoksa dosya adını al
       url: URL.createObjectURL(file)        // yeni url
     }
     emitVideo()
@@ -144,7 +141,8 @@ function selectAllText(element: HTMLElement) {
 
     <!-- Video oynatıcı -->
     <div v-if="videoFile && switchVideoVisible" class="video-wrapper">
-      <video class="video-player" :src="videoFile.url" @ended="onVideoEnded" @play="isPlaying = true"
+      <video class="video-player" :src="videoFile.url" @ended="onVideoEnded"
+             @play="isPlaying = true"
              @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
         Tarayıcınız video oynatmayı desteklemiyor.
       </video>
