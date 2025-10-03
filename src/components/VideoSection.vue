@@ -2,12 +2,19 @@
 import { ref, onMounted } from 'vue'
 import evlilikVideo from '../assets/say_yes.mp4'
 
-const props = defineProps({
+interface Video {
+  id: string | null
+  name: string | null
+  url: string | null
+}
+
+const props = defineProps<{
   editable: {
     type: Boolean,
     default: false
-  }
-})
+  }, video: Video | null
+}>()
+
 
 const emit = defineEmits(['update:video'])
 const emitVideo = () => {
@@ -16,7 +23,11 @@ const emitVideo = () => {
 
 const videoRef = ref(null)
 const isPlaying = ref(false)
-const videoFile = ref(null)
+const videoFile = ref<Video>({
+  id: props.video?.id || "4",
+  name: props.video?.name || 'video',
+  url: props.video?.url || evlilikVideo
+})
 const showModal = ref(false)
 const switchVideoVisible = ref(true)
 // Editable title
@@ -24,22 +35,25 @@ const title = ref('Ölümsüz An')
 const isEditingTitle = ref(false)
 const titleRef = ref(null)
 
-// Sayfa yüklendiğinde default video'yu yükle
-onMounted(() => {
-  videoFile.value = evlilikVideo
-})
 
 function handleVideoUpload(event: any) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('video/')) {
-    videoFile.value = URL.createObjectURL(file)
+    videoFile.value = {
+      id: videoFile.value?.id || "4",      // eski id'yi koru
+      name: videoFile.value?.name || "video", // eski name varsa onu kullan, yoksa dosya adını al
+      url: URL.createObjectURL(file)        // yeni url
+    }
     emitVideo()
   }
 }
 
 function triggerVideoUpload() {
-  if (videoRef.value) {
-    videoRef.value.click()
+  const input = videoRef.value
+  if (input) {
+    input.click()
+  } else {
+    console.warn('videoRef boş!')
   }
 }
 
@@ -129,8 +143,8 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video oynatıcı -->
-    <div  v-if="videoFile && switchVideoVisible" class="video-wrapper">
-      <video class="video-player" :src="videoFile" @ended="onVideoEnded" @play="isPlaying = true"
+    <div v-if="videoFile && switchVideoVisible" class="video-wrapper">
+      <video class="video-player" :src="videoFile.url" @ended="onVideoEnded" @play="isPlaying = true"
              @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
         Tarayıcınız video oynatmayı desteklemiyor.
       </video>
@@ -148,7 +162,8 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video yükleme alanı -->
-    <div v-if="switchVideoVisible && !videoFile"  class="video-upload-area" @click="triggerVideoUpload">
+    <div v-if="switchVideoVisible && !videoFile" class="video-upload-area"
+         @click="triggerVideoUpload">
       <div class="upload-content">
         <div class="upload-icon">+</div>
         <div class="upload-text">Video Yükle</div>
@@ -156,7 +171,7 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Gizli dosya input -->
-    <input type="file" ref="videoRef"  @change="props.editable ? handleVideoUpload : null" accept="video/*"
+    <input type="file" ref="videoRef" @change="handleVideoUpload" accept="video/*"
            style="display: none;" />
 
     <div class="flex items-center gap-6">
@@ -170,7 +185,7 @@ function selectAllText(element: HTMLElement) {
 
 
     <!-- Video modal -->
-    <div  v-if="showModal && switchVideoVisible" class="video-modal" @click="closeVideoModal">
+    <div v-if="showModal && switchVideoVisible" class="video-modal" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
         <button class="close-btn" @click="closeVideoModal">&times;</button>
         <video class="modal-video" :src="videoFile" controls autoplay>

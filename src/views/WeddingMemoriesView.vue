@@ -4,10 +4,10 @@
                  :hero_image="heroImage">
 
     </HeroSection>
-    <SpecialGallerySection :editable="editable"
+    <SpecialGallerySection v-if="heroFetched" :editable="editable"
                            @update:special_gallery_photos="handleSpecialGalleryPhotosUpdate"
                            :special_gallery_photos="specialGalleryPhotos"></SpecialGallerySection>
-    <VideoSection :editable="editable" @update:video="handleWeddingVideoUpdate"></VideoSection>
+    <VideoSection v-if="videoFetched" :editable="editable" @update:video="handleWeddingVideoUpdate" :video="video"></VideoSection>
     <CounterSection></CounterSection>
     <CommonGalerySection :editable="editable"
                          @update:special_gallery_photos="handleCommonGalleryPhotosUpdate"></CommonGalerySection>
@@ -41,6 +41,11 @@ interface Photo {
   name: string | null;
   url: string | null;
 }
+interface Video {
+  id: string | null;
+  name: string | null;
+  url: string | null;
+}
 
 const memoriesData = reactive({
   hero: {
@@ -49,14 +54,20 @@ const memoriesData = reactive({
     image: null as Photo | null
   },
   specialGalleryPhotos: [] as Photo[],
-  commonGalleryPhotos: [] as any[],
-  weddingVideo: null as string | null
+  commonGalleryPhotos: [] as Photo[],
+  weddingVideo: null as Video | null
 })
 
 const onHeroDataUpdate = (data) => {
-  memoriesData.hero.names = data.names
-  memoriesData.hero.date = data.date
-  memoriesData.hero.image = data.image
+  if (data.names !== undefined) {
+    memoriesData.hero.names = data.names
+  }
+  if (data.date !== undefined) {
+    memoriesData.hero.date = data.date
+  }
+  if (data.image !== undefined) {
+    memoriesData.hero.image = data.image
+  }
 }
 
 
@@ -65,7 +76,7 @@ function handleSpecialGalleryPhotosUpdate(updatedPhotos: any[]) {
 }
 
 
-function handleWeddingVideoUpdate(updatedVideo: string | null) {
+function handleWeddingVideoUpdate(updatedVideo: Video | null) {
   memoriesData.weddingVideo = updatedVideo
 }
 
@@ -75,9 +86,12 @@ function handleCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
 }
 
 const heroFetched = ref(false)
+const specialGalleryFetched = ref(false)
+const videoFetched = ref(false)
 
 const heroImage = ref<Photo | null>(null)
 const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
+const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
 
 
 onMounted(async () => {
@@ -92,47 +106,61 @@ onMounted(async () => {
 
 
     const heroFile = files.find(
-      (f: any) => f.name.toLowerCase() === 'hero.jpg' || f.name.toLowerCase() === 'hero.png'
+      (f: any) => f.name.startsWith('hero-image')
     )
     if (heroFile) {
+
       heroImage.value = {
         id: heroFile.id,
         name: heroFile.name,
-        url: `https://lh3.googleusercontent.com/d/${heroFile.id}`
+        url: `https://lh3.googleusercontent.com/d/${heroFile.id}?t=${new Date().getTime()}`
       }
     }
 
     const special1Photo = files.find(
-      (f: any) => f.name.toLowerCase() === 'special-1.png'
+      (f: any) => f.name.startsWith('special-1-image')
     )
     specialGalleryPhotos.value.push(special1Photo ? {
       id: special1Photo.id,
       name: special1Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special1Photo.id}`
+      url: `https://lh3.googleusercontent.com/d/${special1Photo.id}?t=${new Date().getTime()}`
     } : null)
     const special2Photo = files.find(
-      (f: any) => f.name.toLowerCase() === 'special-2.png'
+      (f: any) => f.name.startsWith('special-2-image')
     )
     specialGalleryPhotos.value.push(special2Photo ? {
       id: special2Photo.id,
       name: special2Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special2Photo.id}`
+      url: `https://lh3.googleusercontent.com/d/${special2Photo.id}?t=${new Date().getTime()}`
     } : null)
     const special3Photo = files.find(
-      (f: any) => f.name.toLowerCase() === 'special-3.png'
+      (f: any) => f.name.startsWith('special-3-image')
     )
     specialGalleryPhotos.value.push(special3Photo ? {
       id: special3Photo.id,
       name: special3Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special3Photo.id}`
+      url: `https://lh3.googleusercontent.com/d/${special3Photo.id}?t=${new Date().getTime()}`
     } : null)
 
+    const videoFile = files.find(
+      (f: any) => f.name.startsWith('video')
+    )
+    if (videoFile) {
+
+      video.value = {
+        id: videoFile.id,
+        name: videoFile.name,
+        url: `https://lh3.googleusercontent.com/d/${videoFile.id}?t=${new Date().getTime()}`
+      }
+    }
 
   } catch (err) {
     console.error('Drive dosya çekme hatası:', err)
     memoriesData.hero.image = null
   } finally {
     heroFetched.value = true
+    specialGalleryFetched.value = true
+    videoFetched.value = true
   }
 })
 

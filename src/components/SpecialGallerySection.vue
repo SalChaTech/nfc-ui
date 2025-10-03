@@ -44,7 +44,23 @@ const props = defineProps({
   }
 })
 
-const photos = ref(props.special_gallery_photos);
+// const photos = ref(props.special_gallery_photos);
+
+interface Photo {
+  id: string | null
+  name: string | null
+  url: string | null
+}
+
+// Varsayılan 3 foto
+const defaultPhotos: Photo[] = [
+  { id: "2", name: 'special-1-image', url: null },
+  { id: "3", name: 'special-2-image', url: null },
+  { id: "4", name: 'special-3-image', url: null }
+]
+
+// photos ref
+const photos = ref<Photo[]>([])
 
 const emit = defineEmits(['update:special_gallery_photos'])
 
@@ -81,6 +97,18 @@ function handlePhotoChange(event: any) {
   }
 
 }
+
+onMounted(() => {
+  if (!props.special_gallery_photos || props.special_gallery_photos.length === 0) {
+    photos.value = [...defaultPhotos]
+  } else {
+    // props'dan gelenleri name'e göre eşleştir
+    photos.value = defaultPhotos.map(def => {
+      const matched = props.special_gallery_photos.find((p: Photo) => p.name.startsWith(def.name))
+      return matched ? { ...matched } : def
+    })
+  }
+})
 
 </script>
 

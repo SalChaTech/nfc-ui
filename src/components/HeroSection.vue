@@ -1,6 +1,6 @@
 <template>
   <div class="hero-container">
-    <img :src="currentImage" @click="props.editable ? triggerImageUpload() : null"
+    <img :src="currentImage.url" @click="props.editable ? triggerImageUpload() : null"
          class="hero-image" alt="Hero Image">
     <!-- Overlay içerik -->
     <div class="invitation-container">
@@ -33,12 +33,15 @@
 
         <!-- Date section -->
         <div class="date-section">
-          <div class="date-text editable"  @click="props.editable ? showDatePicker() : null">{{ formattedDate }}</div>
+          <div class="date-text editable" @click="props.editable ? showDatePicker() : null">
+            {{ formattedDate }}
+          </div>
           <div class="time-text">{{ day }}</div>
         </div>
 
         <!-- Date picker -->
-        <input type="date" ref="datePickerRef"   @change="props.editable ? updateDate($event) : null" :value="selectedDate"
+        <input type="date" ref="datePickerRef" @change="props.editable ? updateDate($event) : null"
+               :value="selectedDate"
                style="position: absolute; opacity: 0; pointer-events: none; z-index: 1000;" />
 
         <!-- Hidden image upload -->
@@ -56,7 +59,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import hero from '../assets/hero.jpg'
 import { useDateStore } from '../composables/useDateStore.js'
@@ -89,17 +92,21 @@ const emitData = (type) => {
     emit('update:data', { date: selectedDate.value })
   }
 }
-// const emitData = () => {
-//   emit('update:data', {
-//     names: { ...names },
-//     date: selectedDate.value,
-//     image: currentImage.value
-//   })
-// }
 
 
+// const currentImage = ref(props.hero_image?.url || hero)
 
-const currentImage = ref(props.hero_image?.url || hero)
+interface Photo {
+  id: string | null
+  name: string | null
+  url: string | null
+}
+
+const currentImage = ref<Photo>({
+  id: props.hero_image?.id || "1",
+  name: props.hero_image?.name || 'hero-image',
+  url: props.hero_image?.url || hero // hero string (asset) fallback olacak
+})
 // Reactive names data
 const names = reactive({
   first: 'Çağla',
@@ -202,7 +209,10 @@ const handleImageUpload = (event) => {
   if (file && file.type.startsWith('image/')) {
     const reader = new FileReader()
     reader.onload = (e) => {
-      currentImage.value = e.target.result
+      currentImage.value = {
+        ...currentImage.value,
+        url: e.target?.result as string
+      }
       emitData('image')
     }
     reader.readAsDataURL(file)
