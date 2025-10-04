@@ -6,14 +6,16 @@ import LoginProcess from '@/components/login-components/LoginProcess.vue'
 import SaveMemoriesSection from '@/components/wedding-memories-components/SaveMemoriesSection.vue'
 import axios from 'axios'
 import Error404Page from '@/views/Error404Page.vue'
+import { API_ENDPOINTS } from '../config/apiEndpoints.ts'
+
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginPage, meta: { allowDirect: false } },
   { path: '/upload/:id', name: 'UploadWeddingMemories', component: WeddingMemoriesPage },
   { path: '/show/:id', name: 'ShowWeddingMemories', component: WeddingMemoriesPage },
   { path: '/auth/callback', component: LoginProcess }, // ← BU ÖNEMLİ
-  { path: '/save', component: SaveMemoriesSection },// ← BU ÖNEMLİ
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: Error404Page } // 404 fallback
+  { path: '/save', component: SaveMemoriesSection },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: Error404Page }
 
 ]
 
@@ -38,7 +40,11 @@ router.beforeEach(async (to, from) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/auth/validate-token', { token })
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_BASE_URL
+      })
+
+      const response = await api.post(API_ENDPOINTS.GOOGLE_AUTH.VALIDATE_TOKEN, { token })
       if (response.data.valid) {
         return true
       } else {

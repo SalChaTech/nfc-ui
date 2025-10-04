@@ -58,6 +58,7 @@ import { useRoute } from 'vue-router'
 import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
 import CheckPassword from '@/components/login-components/CheckPassword.vue'
+import { API_ENDPOINTS } from '../config/apiEndpoints'
 
 
 const route = useRoute()
@@ -101,7 +102,10 @@ const memoriesData = reactive({
 const onPasswordSubmit = async (password: string) => {
   saveLoading.value = true
   try {
-    const response = await axios.post('http://localhost:8080/userAuth/token', {
+    const api = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    })
+    const response = await api.post(API_ENDPOINTS.USER_AUTH.GET_TOKEN, {
       productId: route.params.id,
       password: password
     })
@@ -185,13 +189,15 @@ const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmal
 const fetchDriveFiles = async () => {
   try {
 
-
-    const driveApplicationFolderIdResponse = await axios.get(`http://localhost:8080/api/users/drive-application-folder-id/${route.params.id}`)
+    const api = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    })
+    const driveApplicationFolderIdResponse = await api.get(API_ENDPOINTS.USERS.GET_DRIVE_APPLICATION_FOLDER_ID(route.params.id))
 
     const driveApplicationFolderId = driveApplicationFolderIdResponse.data.driveApplicationFolderId
 
     if (driveApplicationFolderId) {
-      const response = await axios.get(`http://localhost:8080/api/drive/files?folderId=${driveApplicationFolderId}`)
+      const response = await api.get(API_ENDPOINTS.DRIVE.GET_FILES(driveApplicationFolderId))
       const files = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
 
@@ -249,9 +255,9 @@ const fetchDriveFiles = async () => {
       )
       if (gallerFolder) {
 
-        const gallerFolderId = gallerFolder.id;
+        const gallerFolderId = gallerFolder.id
 
-        const response = await axios.get(`http://localhost:8080/api/drive/files?folderId=${gallerFolderId}`)
+        const response = await api.get(API_ENDPOINTS.DRIVE.GET_FILES(gallerFolderId))
 
         const galleryFiles = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
@@ -284,7 +290,10 @@ onMounted(async () => {
   if (route.path.startsWith('/upload/')) {
     const savedToken = localStorage.getItem('userToken')
     if (savedToken) {
-      const response = await axios.post('http://localhost:8080/userAuth/validate-token', { token: savedToken })
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_BASE_URL
+      })
+      const response = await api.post(API_ENDPOINTS.USER_AUTH.VALIDATE_TOKEN, { token: savedToken })
       if (response.data.valid) {
         token.value = savedToken
         showPasswordCheck.value = false

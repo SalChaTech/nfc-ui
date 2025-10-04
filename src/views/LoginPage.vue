@@ -49,6 +49,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { API_ENDPOINTS } from '@/config/apiEndpoints.js'
 
 const router = useRouter()
 const user = ref(null)
@@ -74,13 +75,18 @@ const logoAnimation = () => {
 // Backend-mediated Google login
 const loginWithGoogle = () => {
   isLoading.value = true
-  window.location.href = 'http://localhost:8080/auth/google'
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.GOOGLE_AUTH.GOOGLE}`;
+
 }
 
 // Kullanıcıyı kontrol et, login olmuşsa upload sayfasına yönlendir
 const checkUser = async () => {
   try {
-    const res = await axios.get('http://localhost:8080/auth/me', { withCredentials: true })
+    const api = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    })
+
+    const res = await api.get(API_ENDPOINTS.GOOGLE_AUTH.ME, { withCredentials: true })
     if (res.data) {
       user.value = res.data
       router.push('/upload')

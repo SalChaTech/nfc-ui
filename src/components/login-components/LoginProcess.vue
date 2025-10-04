@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_ENDPOINTS } from '@/config/apiEndpoints.ts'
 
 const router = useRouter()
 
@@ -13,7 +14,11 @@ onMounted(async () => {
   if (!code) return
 
   try {
-    const res = await axios.get(`http://localhost:8080/auth/callback?code=${code}`, { withCredentials: true })
+    const api = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    })
+
+    const res = await api.get(API_ENDPOINTS.GOOGLE_AUTH.CALLBACK(code), { withCredentials: true });
 
     if (res.data?.jwt) {
       // JWT ve user bilgilerini kaydet

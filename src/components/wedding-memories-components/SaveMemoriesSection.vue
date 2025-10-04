@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import axios from 'axios'
+import { API_ENDPOINTS } from '../../config/apiEndpoints'
 
 import { useRoute } from 'vue-router'
 
@@ -65,7 +66,11 @@ const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
   if (toSubfolder) formData.append('toUploadSubfolder', 'true')
 
   // 4. Upload
-  const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL
+  })
+
+  const response = await api.post(API_ENDPOINTS.DRIVE.UPLOAD_FILE, formData, {
     withCredentials: true,
     headers: { 'Content-Type': 'multipart/form-data' }
   })
@@ -113,7 +118,11 @@ const uploadToDrive = async () => {
     if (props.memoriesData.deletedCommonGalleryPhotos != undefined) {
       for (const photo of props.memoriesData.deletedCommonGalleryPhotos) {
         const file = photo
-        const response = await axios.delete(`http://localhost:8080/api/drive/files/${file.id}`, {
+        const api = axios.create({
+          baseURL: import.meta.env.VITE_API_BASE_URL
+        })
+
+        const response = await api.delete(API_ENDPOINTS.DRIVE.DELETE_FILE(file.id), {
           withCredentials: true
         })
         console.log('Başarıyla silindi:', response.data)
@@ -121,8 +130,10 @@ const uploadToDrive = async () => {
     }
 
     if (uploadedAtLeastOneFile) {
-
-      const response = await axios.get('http://localhost:8080/auth/me', {
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_BASE_URL
+      })
+      const response = await api.get(API_ENDPOINTS.GOOGLE_AUTH.ME, {
         withCredentials: true
       })
 
@@ -131,8 +142,9 @@ const uploadToDrive = async () => {
 
       const token = localStorage.getItem('userToken') // token'ı localStorage'dan al
 
-      await axios.put(
-        'http://localhost:8080/api/users/update-email-and-drive-application-folder-id',
+
+      await api.put(
+        API_ENDPOINTS.USERS.UPDATE_EMAIL_AND_APP_FOLDER_ID,
         {
           email: userEmail,
           driveApplicationFolderId: newApplicationFolderId
