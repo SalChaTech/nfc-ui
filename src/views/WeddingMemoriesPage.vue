@@ -1,5 +1,10 @@
 <template>
-  <div :class="['page-container', { blurred: saveLoading }]">
+  <div v-if="showPasswordCheck">
+    <CheckPassword :status="passwordOperationStatus"
+                   :msg="passwordOperationMsg" @passwordSubmit="onPasswordSubmit" />
+  </div>
+
+  <div v-else :class="['page-container', { blurred: saveLoading }]">
     <div v-if="!allFetched">
       <LoadingProcess />
     </div>
@@ -52,18 +57,22 @@ import SaveMemoriesSection from '@/components/wedding-memories-components/SaveMe
 import { useRoute } from 'vue-router'
 import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
+import CheckPassword from '@/components/login-components/CheckPassword.vue'
 
 
 const route = useRoute()
 
-const editable = ref(false)
-if (route.path.startsWith('/upload/')) {
-  editable.value = true
-} else if (route.path.startsWith('/show/')) {
-  editable.value = false
-}
+const passwordOperationStatus = ref<'success' | 'error' | null>(null)
+const passwordOperationMsg = ref<string | null>(null)
 
+const showPasswordCheck = ref(true)
 const saveLoading = ref(false)
+const userPassword = ref('')
+const token = ref('')
+
+
+const editable = ref(false)
+
 
 interface Photo {
   id: string | null;
@@ -89,6 +98,41 @@ const memoriesData = reactive({
   weddingVideo: null as Video | null
 })
 
+const onPasswordSubmit = async (password: string) => {
+  saveLoading.value = true
+  try {
+    const response = await axios.post('http://localhost:8080/userAuth/token', {
+      productId: route.params.id,
+      password: password
+    })
+
+    token.value = response.data.token
+    passwordOperationStatus.value = 'success'
+    passwordOperationMsg.value = 'Parola doğrulandı!'
+    setTimeout(() => {
+      passwordOperationStatus.value = null
+    }, 5000)
+
+    localStorage.setItem('userToken', token.value) // token kaydediliyor
+
+    userPassword.value = password
+    showPasswordCheck.value = false
+
+    await fetchDriveFiles()
+
+
+  } catch (error: any) {
+    const msg = error.response?.data || 'Bilinmeyen bir hata oluştu'
+    passwordOperationStatus.value = 'error'
+    passwordOperationMsg.value = msg
+
+    setTimeout(() => {
+      passwordOperationStatus.value = null
+    }, 5000)
+  } finally {
+    saveLoading.value = false
+  }
+}
 const onHeroDataUpdate = (data) => {
   if (data.names !== undefined) {
     memoriesData.hero.names = data.names
@@ -138,81 +182,90 @@ const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanma
 const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
 const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 
-
-onMounted(async () => {
+const fetchDriveFiles = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/drive/files', {
-      // headers: {
-      //   Authorization: 'Bearer ' + token, // token varsa
-      // },
-      withCredentials: true // cookie ile auth kullanıyorsan
-    })
-    const files = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
 
-    const heroFile = files.find(
-      (f: any) => f.name.startsWith('hero-image')
-    )
-    if (heroFile) {
+    const driveApplicationFolderIdResponse = await axios.get(`http://localhost:8080/api/users/drive-application-folder-id/${route.params.id}`)
 
-      heroImage.value = {
-        id: heroFile.id,
-        name: heroFile.name,
-        url: `https://lh3.googleusercontent.com/d/${heroFile.id}`
+    const driveApplicationFolderId = driveApplicationFolderIdResponse.data.driveApplicationFolderId
+
+    if (driveApplicationFolderId) {
+      const response = await axios.get(`http://localhost:8080/api/drive/files?folderId=${driveApplicationFolderId}`)
+      const files = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
+
+
+      const heroFile = files.find(
+        (f: any) => f.name.startsWith('hero-image')
+      )
+      if (heroFile) {
+
+        heroImage.value = {
+          id: heroFile.id,
+          name: heroFile.name,
+          url: `https://lh3.googleusercontent.com/d/${heroFile.id}?t=${new Date().getTime()}`
+        }
       }
+
+      const special1Photo = files.find(
+        (f: any) => f.name.startsWith('special-1-image')
+      )
+      specialGalleryPhotos.value.push(special1Photo ? {
+        id: special1Photo.id,
+        name: special1Photo.name,
+        url: `https://lh3.googleusercontent.com/d/${special1Photo.id}?t=${new Date().getTime()}`
+      } : null)
+      const special2Photo = files.find(
+        (f: any) => f.name.startsWith('special-2-image')
+      )
+      specialGalleryPhotos.value.push(special2Photo ? {
+        id: special2Photo.id,
+        name: special2Photo.name,
+        url: `https://lh3.googleusercontent.com/d/${special2Photo.id}?t=${new Date().getTime()}`
+      } : null)
+      const special3Photo = files.find(
+        (f: any) => f.name.startsWith('special-3-image')
+      )
+      specialGalleryPhotos.value.push(special3Photo ? {
+        id: special3Photo.id,
+        name: special3Photo.name,
+        url: `https://lh3.googleusercontent.com/d/${special3Photo.id}?t=${new Date().getTime()}`
+      } : null)
+
+      const videoFile = files.find(
+        (f: any) => f.name.startsWith('video')
+      )
+      if (videoFile) {
+
+        video.value = {
+          id: videoFile.id,
+          name: videoFile.name,
+          url: `https://lh3.googleusercontent.com/d/${videoFile.id}?t=${new Date().getTime()}`
+        }
+      }
+
+      const gallerFolder = files.find(
+        (f: any) => f.name.startsWith('Gallery')
+      )
+      if (gallerFolder) {
+
+        const gallerFolderId = gallerFolder.id;
+
+        const response = await axios.get(`http://localhost:8080/api/drive/files?folderId=${gallerFolderId}`)
+
+        const galleryFiles = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
+
+
+        commonGalleryPhotos.value = galleryFiles.map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          url: `https://lh3.googleusercontent.com/d/${f.id}?t=${new Date().getTime()}`
+        }))
+      }
+
+
     }
 
-    const special1Photo = files.find(
-      (f: any) => f.name.startsWith('special-1-image')
-    )
-    specialGalleryPhotos.value.push(special1Photo ? {
-      id: special1Photo.id,
-      name: special1Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special1Photo.id}?t=${new Date().getTime()}`
-    } : null)
-    const special2Photo = files.find(
-      (f: any) => f.name.startsWith('special-2-image')
-    )
-    specialGalleryPhotos.value.push(special2Photo ? {
-      id: special2Photo.id,
-      name: special2Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special2Photo.id}?t=${new Date().getTime()}`
-    } : null)
-    const special3Photo = files.find(
-      (f: any) => f.name.startsWith('special-3-image')
-    )
-    specialGalleryPhotos.value.push(special3Photo ? {
-      id: special3Photo.id,
-      name: special3Photo.name,
-      url: `https://lh3.googleusercontent.com/d/${special3Photo.id}?t=${new Date().getTime()}`
-    } : null)
-
-    const videoFile = files.find(
-      (f: any) => f.name.startsWith('video')
-    )
-    if (videoFile) {
-
-      video.value = {
-        id: videoFile.id,
-        name: videoFile.name,
-        url: `https://lh3.googleusercontent.com/d/${videoFile.id}?t=${new Date().getTime()}`
-      }
-    }
-
-    const response2 = await axios.get('http://localhost:8080/api/drive/gallery-files', {
-      // headers: {
-      //   Authorization: 'Bearer ' + token, // token varsa
-      // },
-      withCredentials: true // cookie ile auth kullanıyorsan
-    })
-    const galleryFiles = response2.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
-
-
-    commonGalleryPhotos.value = galleryFiles.map((f: any) => ({
-      id: f.id,
-      name: f.name,
-      url: `https://lh3.googleusercontent.com/d/${f.id}`
-    }))
 
   } catch (err) {
     console.error('Drive dosya çekme hatası:', err)
@@ -223,6 +276,29 @@ onMounted(async () => {
     videoFetched.value = true
     commonGalleryFetched.value = true
   }
+}
+
+
+onMounted(async () => {
+
+  if (route.path.startsWith('/upload/')) {
+    const savedToken = localStorage.getItem('userToken')
+    if (savedToken) {
+      const response = await axios.post('http://localhost:8080/userAuth/validate-token', { token: savedToken })
+      if (response.data.valid) {
+        token.value = savedToken
+        showPasswordCheck.value = false
+        await fetchDriveFiles()
+      }
+    }
+    editable.value = true
+  } else if (route.path.startsWith('/show/')) {
+    showPasswordCheck.value = false
+    await fetchDriveFiles()
+    editable.value = false
+  }
+
+
 })
 
 

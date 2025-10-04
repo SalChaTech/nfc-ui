@@ -19,9 +19,12 @@ onMounted(async () => {
       // JWT ve user bilgilerini kaydet
       localStorage.setItem('jwt', res.data.jwt)
       localStorage.setItem('user', JSON.stringify(res.data.user))
-
-      // Frontend yönlendirme
-      router.push('/upload/123')
+      const productId = localStorage.getItem('productId')
+      if (productId != null && productId !== 'undefined' && productId !== '') {
+        router.push(`/upload/${productId}`)
+      } else {
+        router.push('/login')
+      }
     }
   } catch (err) {
     console.error('Login callback hatası:', err)

@@ -2,6 +2,10 @@
 import { computed, ref } from 'vue'
 import axios from 'axios'
 
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
 interface Video {
   id: string | null
   name: string | null
@@ -33,9 +37,12 @@ const emit = defineEmits<{
   (e: 'update:loading', value: boolean): void
 }>()
 
+const uploadedAtLeastOneFile = ref(null)
+const applicationFolderId = ref(null)
 const loading = ref(false)
 const showSuccessAlert = ref(false)
 const showErrorAlert = ref(false)
+
 
 const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
   if (!file || !file.url) return
@@ -64,6 +71,7 @@ const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
   })
 
   console.log('Başarıyla yüklendi:', fileName, response.data)
+  uploadedAtLeastOneFile.value = true
   return response.data
 }
 
@@ -72,23 +80,32 @@ const uploadToDrive = async () => {
     loading.value = true
     emit('update:loading', true)
 
+
     if (props.memoriesData.hero.image) {
-      await uploadFileToDrive(props.memoriesData.hero.image)
+      const response = await uploadFileToDrive(props.memoriesData.hero.image)
+      applicationFolderId.value = response.folderId
     }
 
     // Special gallery
     for (const photo of props.memoriesData.specialGalleryPhotos) {
-      if (photo) await uploadFileToDrive(photo)
+      if (photo) {
+        const response = await uploadFileToDrive(photo)
+        applicationFolderId.value = response.folderId
+      }
     }
 
     // Wedding video
     if (props.memoriesData.weddingVideo) {
-      await uploadFileToDrive(props.memoriesData.weddingVideo)
+      const response = await uploadFileToDrive(props.memoriesData.weddingVideo)
+      applicationFolderId.value = response.folderId
     }
 
     // Added common gallery (opsiyonel subfolder)
     for (const photo of props.memoriesData.addedCommonGalleryPhotos) {
-      if (photo) await uploadFileToDrive(photo, true)
+      if (photo) {
+        const response = await uploadFileToDrive(photo, true)
+        applicationFolderId.value = response.folderId
+      }
     }
 
     console.log('Tüm dosyalar yüklendi!')
@@ -102,6 +119,35 @@ const uploadToDrive = async () => {
         console.log('Başarıyla silindi:', response.data)
       }
     }
+
+    if (uploadedAtLeastOneFile) {
+
+      const response = await axios.get('http://localhost:8080/auth/me', {
+        withCredentials: true
+      })
+
+      const userEmail = response.data.email
+      const newApplicationFolderId = applicationFolderId.value
+
+      const token = localStorage.getItem('userToken') // token'ı localStorage'dan al
+
+      await axios.put(
+        'http://localhost:8080/api/users/update-email-and-drive-application-folder-id',
+        {
+          email: userEmail,
+          driveApplicationFolderId: newApplicationFolderId
+        },
+        {
+          headers: {
+            Authorization: token
+          }
+        }
+      )
+
+      console.log('User updated!')
+    }
+
+
   } catch (error) {
     console.error('Yükleme hatası:', error)
 
