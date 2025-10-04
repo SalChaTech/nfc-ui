@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useDateStore } from '../composables/useDateStore.js'
+import { useDateStore } from '../../composables/useDateStore.js'
 
 // Tarih store'unu kullan
 const { selectedDate, currentDate, totalDays, updateCurrentDate } = useDateStore()

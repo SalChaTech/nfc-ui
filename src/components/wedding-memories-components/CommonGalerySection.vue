@@ -12,8 +12,8 @@ const props = defineProps({
   }
 })
 
-import g4Image from '../assets/g4.jpg'
-import g5Image from '../assets/g5.jpg'
+import g4Image from '../../assets/g4.jpg'
+import g5Image from '../../assets/g5.jpg'
 
 const serverPhotos = ref(props.common_gallery_photos)
 const localPhotos = ref<Photo[]>(

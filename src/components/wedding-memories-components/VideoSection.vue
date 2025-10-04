@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import evlilikVideo from '../assets/say_yes.mp4'
+import evlilikVideo from '../../assets/say_yes.mp4'
 
 interface Video {
   id: string | null

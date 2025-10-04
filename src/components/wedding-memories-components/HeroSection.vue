@@ -61,8 +61,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import hero from '../assets/hero.jpg'
-import { useDateStore } from '../composables/useDateStore.js'
+import hero from '../../assets/hero.jpg'
+import { useDateStore } from '../../composables/useDateStore.js'
 
 // Tarih store'unu kullan
 const { updateDate: setStoreDate } = useDateStore()

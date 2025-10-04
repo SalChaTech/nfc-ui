@@ -42,12 +42,13 @@
 
 <script setup lang="ts">
 import LoadingProcess from '../components/LoadingProcess.vue'
-import HeroSection from '../components/HeroSection.vue'
-import SpecialGallerySection from '../components/SpecialGallerySection.vue'
-import CommonGalerySection from '@/components/CommonGalerySection.vue'
-import VideoSection from '@/components/VideoSection.vue'
-import CounterSection from '@/components/CounterSection.vue'
-import SaveMemoriesSection from '@/components/SaveMemoriesSection.vue'
+import HeroSection from '../components/wedding-memories-components/HeroSection.vue'
+import SpecialGallerySection
+  from '../components/wedding-memories-components/SpecialGallerySection.vue'
+import CommonGalerySection from '@/components/wedding-memories-components/CommonGalerySection.vue'
+import VideoSection from '@/components/wedding-memories-components/VideoSection.vue'
+import CounterSection from '@/components/wedding-memories-components/CounterSection.vue'
+import SaveMemoriesSection from '@/components/wedding-memories-components/SaveMemoriesSection.vue'
 import { useRoute } from 'vue-router'
 import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'

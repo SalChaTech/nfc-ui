@@ -29,9 +29,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import g1Image from '../assets/g3.jpg'
-import g2Image from '../assets/g2.jpg'
-import g3Image from '../assets/g1.jpg'
+import g1Image from '../../assets/g3.jpg'
+import g2Image from '../../assets/g2.jpg'
+import g3Image from '../../assets/g1.jpg'
 
 const props = defineProps({
   editable: {
