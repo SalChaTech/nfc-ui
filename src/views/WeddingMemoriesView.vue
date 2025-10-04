@@ -33,8 +33,8 @@
       </div>
     </div>
 
-    <div v-if="saveLoading" >
-      <LoadingProcess/>
+    <div v-if="saveLoading">
+      <LoadingProcess />
     </div>
 
   </div>
@@ -148,14 +148,11 @@ onMounted(async () => {
     })
     const files = response.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
-    console.log('All fetched files :', files)
 
     const heroFile = files.find(
       (f: any) => f.name.startsWith('hero-image')
     )
     if (heroFile) {
-
-      console.log('Hero file :', heroFile)
 
       heroImage.value = {
         id: heroFile.id,
@@ -209,8 +206,6 @@ onMounted(async () => {
     })
     const galleryFiles = response2.data // Backend dosya listesi döndürmeli: [{name, url}, ...]
 
-    console.log('Gallery files :', galleryFiles)
-
 
     commonGalleryPhotos.value = galleryFiles.map((f: any) => ({
       id: f.id,
@@ -238,6 +233,7 @@ onMounted(async () => {
   pointer-events: none; /* blur sırasında tıklamayı engelle */
   user-select: none;
 }
+
 .page-container {
   min-width: 100%;
   max-width: 100%;

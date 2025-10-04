@@ -37,115 +37,61 @@ const loading = ref(false)
 const showSuccessAlert = ref(false)
 const showErrorAlert = ref(false)
 
+const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
+  if (!file || !file.url) return
+
+  // 1. Fetch ve blob
+  const res = await fetch(file.url)
+  const blob = await res.blob()
+
+  // 2. Dosya adı ve uzantı kontrolü
+  let fileName = file.name || 'untitled'
+  if (!fileName.includes('.') && blob.type) {
+    const extension = '.' + blob.type.split('/')[1]
+    fileName += extension
+  }
+
+  // 3. FormData oluştur
+  const formData = new FormData()
+  formData.append('file', new File([blob], fileName, { type: blob.type }))
+  if (file.id) formData.append('fileId', file.id)
+  if (toSubfolder) formData.append('toUploadSubfolder', 'true')
+
+  // 4. Upload
+  const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
+    withCredentials: true,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+
+  console.log('Başarıyla yüklendi:', fileName, response.data)
+  return response.data
+}
 
 const uploadToDrive = async () => {
   try {
     loading.value = true
     emit('update:loading', true)
 
-    console.log('hero : ', props.memoriesData.hero.image)
-    console.log('hero : ', props.memoriesData.hero.names)
-    console.log('special-1 : ', props.memoriesData.specialGalleryPhotos[0])
-    console.log('special-2 : ', props.memoriesData.specialGalleryPhotos[1])
-    console.log('special-3 : ', props.memoriesData.specialGalleryPhotos[1])
-    console.log('video : ', props.memoriesData.weddingVideo?.name)
-    console.log('added common gallery : ', props.memoriesData.addedCommonGalleryPhotos)
-    console.log('deleted common gallery : ', props.memoriesData.deletedCommonGalleryPhotos)
-
-    if (props.memoriesData.hero.image != undefined) {
-      const file = props.memoriesData.hero.image
-      const res = await fetch(file.url)
-      const blob = await res.blob()
-      let fileName = file.name || 'untitled'
-      if (!fileName.includes('.')) {
-        // Eğer uzantı yoksa blob.type'dan al
-        const extension = blob.type ? '.' + blob.type.split('/')[1] : ''
-        fileName += extension
-      }
-      const uploadFile = new File([blob], fileName, { type: blob.type })
-      const formData = new FormData()
-      formData.append('file', uploadFile)
-      if (file.id) formData.append('fileId', file.id)
-      // formData.append('toUploadSubfolder', true)
-      const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-        withCredentials: true,
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      console.log('Başarıyla yüklendi:', file.fileName, response.data)
-
+    if (props.memoriesData.hero.image) {
+      await uploadFileToDrive(props.memoriesData.hero.image)
     }
 
-    if (props.memoriesData.specialGalleryPhotos != undefined) {
-      for (const photo of props.memoriesData.specialGalleryPhotos) {
-        const file = photo
-        const res = await fetch(file.url)
-        const blob = await res.blob()
-        let fileName = file.name || 'untitled'
-        if (!fileName.includes('.')) {
-          // Eğer uzantı yoksa blob.type'dan al
-          const extension = blob.type ? '.' + blob.type.split('/')[1] : ''
-          fileName += extension
-        }
-        const uploadFile = new File([blob], fileName, { type: blob.type })
-        const formData = new FormData()
-        formData.append('file', uploadFile)
-        if (file.id) formData.append('fileId', file.id)
-        // formData.append('toUploadSubfolder', true)
-        const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        console.log('Başarıyla yüklendi:', file.fileName, response.data)
-      }
+    // Special gallery
+    for (const photo of props.memoriesData.specialGalleryPhotos) {
+      if (photo) await uploadFileToDrive(photo)
     }
 
-    if (props.memoriesData.weddingVideo != undefined) {
-      const file = props.memoriesData.weddingVideo
-      const res = await fetch(file.url)
-      const blob = await res.blob()
-      let fileName = file.name || 'untitled'
-      if (!fileName.includes('.')) {
-        // Eğer uzantı yoksa blob.type'dan al
-        const extension = blob.type ? '.' + blob.type.split('/')[1] : ''
-        fileName += extension
-      }
-      const uploadFile = new File([blob], fileName, { type: blob.type })
-      const formData = new FormData()
-      formData.append('file', uploadFile)
-      if (file.id) formData.append('fileId', file.id)
-      // formData.append('toUploadSubfolder', true)
-      const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-        withCredentials: true,
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      console.log('Başarıyla yüklendi:', file.fileName, response.data)
-
+    // Wedding video
+    if (props.memoriesData.weddingVideo) {
+      await uploadFileToDrive(props.memoriesData.weddingVideo)
     }
 
-
-    if (props.memoriesData.addedCommonGalleryPhotos != undefined) {
-      for (const photo of props.memoriesData.addedCommonGalleryPhotos) {
-        const file = photo
-        const res = await fetch(file.url)
-        const blob = await res.blob()
-        let fileName = file.name || 'untitled'
-        if (!fileName.includes('.')) {
-          // Eğer uzantı yoksa blob.type'dan al
-          const extension = blob.type ? '.' + blob.type.split('/')[1] : ''
-          fileName += extension
-        }
-        const uploadFile = new File([blob], fileName, { type: blob.type })
-        const formData = new FormData()
-        formData.append('file', uploadFile)
-        if (file.id) formData.append('fileId', file.id)
-        formData.append('toUploadSubfolder', true)
-        const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        console.log('Başarıyla yüklendi:', file.fileName, response.data)
-      }
+    // Added common gallery (opsiyonel subfolder)
+    for (const photo of props.memoriesData.addedCommonGalleryPhotos) {
+      if (photo) await uploadFileToDrive(photo, true)
     }
+
+    console.log('Tüm dosyalar yüklendi!')
 
     if (props.memoriesData.deletedCommonGalleryPhotos != undefined) {
       for (const photo of props.memoriesData.deletedCommonGalleryPhotos) {
@@ -158,10 +104,10 @@ const uploadToDrive = async () => {
     }
   } catch (error) {
     console.error('Yükleme hatası:', error)
-    
+
     // Hata durumunda error alert göster
     showErrorAlert.value = true
-    
+
     // 5 saniye sonra alert'i kapat
     setTimeout(() => {
       showErrorAlert.value = false
@@ -169,11 +115,11 @@ const uploadToDrive = async () => {
   } finally {
     loading.value = false
     emit('update:loading', false)
-    
+
     // Başarılı yükleme sonrası alert göster (sadece hata yoksa)
     if (!showErrorAlert.value) {
       showSuccessAlert.value = true
-      
+
       // 5 saniye sonra alert'i kapat
       setTimeout(() => {
         showSuccessAlert.value = false
@@ -186,15 +132,6 @@ const uploadToDrive = async () => {
 
 <template>
   <div>
-    <!--    <p>İsimler: {{ props.memoriesData.hero.names.first }} & {{ props.memoriesData.hero.names.second-->
-    <!--      }}</p>-->
-    <!--    <p>Tarih: {{ props.memoriesData.hero.date }}</p>-->
-    <!--    <p>Resim: {{ props.memoriesData.hero.image }}</p>-->
-
-    <!--    <h3>Special Gallery ({{ props.memoriesData.specialGalleryPhotos.length }} fotoğraf)</h3>-->
-    <!--    <h3>Common Gallery ({{ props.memoriesData.commonGalleryPhotos.length }} fotoğraf)</h3>-->
-
-
     <button @click="uploadToDrive" class="upload-button">
       <div class="button-content">
         <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -218,7 +155,7 @@ const uploadToDrive = async () => {
         Fotoğraflar başarıyla yayınlandı!
       </v-alert>
     </div>
-    
+
     <div v-if="showErrorAlert" class="alert-container">
       <v-alert
         type="error"
