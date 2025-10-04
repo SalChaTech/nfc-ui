@@ -15,15 +15,14 @@
 
 <style scoped>
 .loading-screen {
-  position: fixed;       /* ekranın üzerine kapla */
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  position: fixed;       /* ekranın her yerine sabit */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* ortala */
   display: flex;
-  align-items: center;   /* dikey ortala */
-  justify-content: center; /* yatay ortala */
-  background-color: rgba(255, 255, 255, 0.8); /* isteğe bağlı yarı saydam arka plan */
-  z-index: 9999;         /* diğer içeriklerin üstünde olsun */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 </style>

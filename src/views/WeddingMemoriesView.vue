@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div :class="['page-container', { blurred: saveLoading }]">
     <div v-if="!allFetched">
       <LoadingProcess />
     </div>
@@ -27,10 +27,16 @@
                              @update:deleted_common_gallery_photos="handleDeletedCommonGalleryPhotosUpdate"
                              :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
       </div>
-      <div class="mt-16">
-      <SaveMemoriesSection :memoriesData="memoriesData"></SaveMemoriesSection>
+      <div v-if="editable" class="mt-16">
+        <SaveMemoriesSection @update:loading="onLoadingUpdate"
+                             :memoriesData="memoriesData"></SaveMemoriesSection>
       </div>
     </div>
+
+    <div v-if="saveLoading" >
+      <LoadingProcess/>
+    </div>
+
   </div>
 </template>
 
@@ -55,6 +61,8 @@ if (route.path.startsWith('/upload/')) {
 } else if (route.path.startsWith('/show/')) {
   editable.value = false
 }
+
+const saveLoading = ref(false)
 
 interface Photo {
   id: string | null;
@@ -109,6 +117,10 @@ function handleAddedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
 
 function handleDeletedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
   memoriesData.deletedCommonGalleryPhotos = updatedPhotos
+}
+
+const onLoadingUpdate = (isLoading: boolean) => {
+  saveLoading.value = isLoading
 }
 
 const heroFetched = ref(false)
@@ -221,6 +233,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.page-container.blurred {
+  filter: blur(4px);
+  pointer-events: none; /* blur sırasında tıklamayı engelle */
+  user-select: none;
+}
 .page-container {
   min-width: 100%;
   max-width: 100%;

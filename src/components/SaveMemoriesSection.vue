@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 
 interface Video {
@@ -29,10 +29,19 @@ const props = defineProps<{
   }
 }>()
 
+const emit = defineEmits<{
+  (e: 'update:loading', value: boolean): void
+}>()
+
+const loading = ref(false)
+const showSuccessAlert = ref(false)
+const showErrorAlert = ref(false)
+
 
 const uploadToDrive = async () => {
   try {
-    const filesToUpload = []
+    loading.value = true
+    emit('update:loading', true)
 
     console.log('hero : ', props.memoriesData.hero.image)
     console.log('hero : ', props.memoriesData.hero.names)
@@ -141,83 +150,35 @@ const uploadToDrive = async () => {
     if (props.memoriesData.deletedCommonGalleryPhotos != undefined) {
       for (const photo of props.memoriesData.deletedCommonGalleryPhotos) {
         const file = photo
-        const response = await axios.delete(`http://localhost:8080/api/drive/files/${file.id}`,  {
-          withCredentials: true,
+        const response = await axios.delete(`http://localhost:8080/api/drive/files/${file.id}`, {
+          withCredentials: true
         })
         console.log('Başarıyla silindi:', response.data)
       }
     }
-
-
-    // const file = props.memoriesData.hero.image
-    // const res = await fetch(file.url)
-    // const blob = await res.blob()
-    // const uploadFile = new File([blob], file.name, { type: blob.type })
-    //
-    // const formData = new FormData()
-    // formData.append('file', uploadFile)
-    // if (file.fileId) formData.append('fileId', file.id)
-    // formData.append('toUploadSubfolder', true)
-    //
-    // const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-    //   withCredentials: true,
-    //   headers: { 'Content-Type': 'multipart/form-data' }
-    // })
-    // console.log('Başarıyla yüklendi:', file.fileName, response.data)
-
-    //   // --- Hero image ---
-    //   if (props.memoriesData.hero.image.source) {
-    //     console.log('Dosyalar1:', props.memoriesData.hero.image)
-    //
-    //     filesToUpload.push({ fileName: 'hero.png', dataUrl: props.memoriesData.hero.image , fileId: props.memoriesData.hero.id})
-    //   }
-    //
-    //   // --- Special Gallery ---
-    //   props.memoriesData.specialGalleryPhotos.forEach((photo, index) => {
-    //     if (photo.source) {
-    //       console.log('Dosyalar2:', photo)
-    //
-    //       filesToUpload.push({ fileName: `special-${index + 1}.png`, dataUrl: photo.source ,fileId: photo.id})
-    //     }
-    //   })
-    //
-    //   // --- Common Gallery (isteğe bağlı) ---
-    //   props.memoriesData.commonGalleryPhotos.forEach((photo, index) => {
-    //     if (photo.url) {
-    //       filesToUpload.push({ fileName: `common-${index + 1}.png`, dataUrl: photo.url })
-    //     }
-    //   })
-    //
-    //   // --- Upload işlemi ---
-    //   for (const file of filesToUpload) {
-    //     // base64 veya URL ise Blob'a çevir
-    //     const res = await fetch(file.dataUrl)
-    //     const blob = await res.blob()
-    //     const uploadFile = new File([blob], file.fileName, { type: blob.type })
-    //
-    //     const formData = new FormData()
-    //     formData.append('file', uploadFile)
-    //     if (file.fileId) formData.append('fileId', file.fileId)
-    //
-    //     const response = await axios.post('http://localhost:8080/api/drive/upload', formData, {
-    //       withCredentials: true,
-    //       headers: { 'Content-Type': 'multipart/form-data' }
-    //     })
-    //     console.log('Başarıyla yüklendi:', file.fileName, response.data)
-    //     if (file.fileName === 'hero.png') {
-    //       props.memoriesData.hero.id = response.data.id
-    //     } else if (file.fileName.startsWith('special')) {
-    //       const index = parseInt(file.fileName.split('-')[1]) - 1
-    //       props.memoriesData.specialGalleryPhotos[index].id = response.data.id
-    //     } else if (file.fileName.startsWith('common')) {
-    //       const index = parseInt(file.fileName.split('-')[1]) - 1
-    //       props.memoriesData.commonGalleryPhotos[index].id = response.data.id
-    //     }
-    //   }
-    //
-    //   console.log('Tüm dosyalar Drive’a yüklendi!')
   } catch (error) {
     console.error('Yükleme hatası:', error)
+    
+    // Hata durumunda error alert göster
+    showErrorAlert.value = true
+    
+    // 5 saniye sonra alert'i kapat
+    setTimeout(() => {
+      showErrorAlert.value = false
+    }, 5000)
+  } finally {
+    loading.value = false
+    emit('update:loading', false)
+    
+    // Başarılı yükleme sonrası alert göster (sadece hata yoksa)
+    if (!showErrorAlert.value) {
+      showSuccessAlert.value = true
+      
+      // 5 saniye sonra alert'i kapat
+      setTimeout(() => {
+        showSuccessAlert.value = false
+      }, 5000)
+    }
   }
 }
 
@@ -233,19 +194,40 @@ const uploadToDrive = async () => {
     <!--    <h3>Special Gallery ({{ props.memoriesData.specialGalleryPhotos.length }} fotoğraf)</h3>-->
     <!--    <h3>Common Gallery ({{ props.memoriesData.commonGalleryPhotos.length }} fotoğraf)</h3>-->
 
-    <div v-if="props.memoriesData.weddingVideo">
-      <video :src="props.memoriesData.weddingVideo" controls style="max-width:300px" />
-    </div>
+
     <button @click="uploadToDrive" class="upload-button">
       <div class="button-content">
-        <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
         </svg>
         <span class="button-text">Yayınla</span>
       </div>
     </button>
+    <div v-if="showSuccessAlert" class="alert-container">
+      <v-alert
+        type="success"
+        variant="outlined"
+        transition="fade"
+      >
+        Fotoğraflar başarıyla yayınlandı!
+      </v-alert>
+    </div>
+    
+    <div v-if="showErrorAlert" class="alert-container">
+      <v-alert
+        type="error"
+        variant="outlined"
+        transition="fade"
+      >
+        Yükleme sırasında bir hata oluştu. Lütfen tekrar deneyin.
+      </v-alert>
+    </div>
   </div>
 </template>
 
@@ -346,6 +328,37 @@ const uploadToDrive = async () => {
   .button-icon {
     width: 20px;
     height: 20px;
+  }
+}
+
+.alert-container {
+  width: 75%;
+  margin: 20px auto;
+  display: block;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive alert */
+@media (max-width: 768px) {
+  .alert-container {
+    width: 85%;
+  }
+}
+
+@media (max-width: 480px) {
+  .alert-container {
+    width: 90%;
   }
 }
 </style>
