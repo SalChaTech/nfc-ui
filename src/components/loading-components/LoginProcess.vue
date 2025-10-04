@@ -30,7 +30,4 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    Giriş yapılıyor...
-  </div>
 </template>
