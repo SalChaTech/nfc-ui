@@ -9,17 +9,19 @@
       <LoadingProcess />
     </div>
     <div v-else>
-      <HeroSection v-if="heroFetched" :editable="editable" @update:data="onHeroDataUpdate"
-                   :hero_image="heroImage">
+      <HeroSection :editable="editable" @update:data="onHeroDataUpdate"
+                   :hero_image="heroImage" :female-name="femaleName"
+                   :male-name="maleName"
+                   :date="date">
 
       </HeroSection>
       <div class="mt-16">
-        <SpecialGallerySection v-if="specialGalleryFetched" :editable="editable"
+        <SpecialGallerySection :editable="editable"
                                @update:special_gallery_photos="handleSpecialGalleryPhotosUpdate"
                                :special_gallery_photos="specialGalleryPhotos"></SpecialGallerySection>
       </div>
       <div class="mt-16">
-        <VideoSection v-if="videoFetched" :editable="editable"
+        <VideoSection :editable="editable"
                       @update:video="handleWeddingVideoUpdate"
                       :video="video"></VideoSection>
       </div>
@@ -27,7 +29,7 @@
         <CounterSection></CounterSection>
       </div>
       <div class="mt-16">
-        <CommonGalerySection v-if="commonGalleryFetched" :editable="editable"
+        <CommonGalerySection :editable="editable"
                              @update:added_common_gallery_photos="handleAddedCommonGalleryPhotosUpdate"
                              @update:deleted_common_gallery_photos="handleDeletedCommonGalleryPhotosUpdate"
                              :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
@@ -172,19 +174,47 @@ const onLoadingUpdate = (isLoading: boolean) => {
   saveLoading.value = isLoading
 }
 
-const heroFetched = ref(false)
-const specialGalleryFetched = ref(false)
-const videoFetched = ref(false)
-const commonGalleryFetched = ref(false)
+const metaFetched = ref(false)
+const driveFilesFetched = ref(false)
 
 const allFetched = computed(() =>
-  heroFetched.value && specialGalleryFetched.value && videoFetched.value && commonGalleryFetched.value
+  metaFetched.value && driveFilesFetched.value
 )
 
 const heroImage = ref<Photo | null>(null)
+const femaleName = ref('')
+const maleName = ref('')
+const date = ref('')
 const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
 const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
+
+const fetchHeroMeta = async () => {
+  try {
+
+    const api = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    })
+
+    const userToken = localStorage.getItem('userToken')
+
+
+    const response = await api.get(API_ENDPOINTS.WEDDING_MEMORIES.GET_BY_USER, {
+      headers: {
+        Authorization: userToken
+      }
+    })
+
+    femaleName.value = response.data.femaleName
+    maleName.value = response.data.maleName
+    date.value = response.data.date
+
+  } catch (error) {
+    console.error('Get Wedding Memories Error : ', error)
+  } finally {
+    metaFetched.value = true
+  }
+}
 
 const fetchDriveFiles = async () => {
   try {
@@ -277,10 +307,7 @@ const fetchDriveFiles = async () => {
     console.error('Drive dosya çekme hatası:', err)
     memoriesData.hero.image = null
   } finally {
-    heroFetched.value = true
-    specialGalleryFetched.value = true
-    videoFetched.value = true
-    commonGalleryFetched.value = true
+    driveFilesFetched.value = true
   }
 }
 
@@ -298,12 +325,14 @@ onMounted(async () => {
         token.value = savedToken
         showPasswordCheck.value = false
         await fetchDriveFiles()
+        await fetchHeroMeta()
       }
     }
     editable.value = true
   } else if (route.path.startsWith('/show/')) {
     showPasswordCheck.value = false
     await fetchDriveFiles()
+    await fetchHeroMeta()
     editable.value = false
   }
 

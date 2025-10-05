@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import hero from '../../assets/hero.jpg'
-import { useDateStore } from '../../composables/useDateStore.js'
+import { useDateStore } from '@/composables/useDateStore'
 
 // Tarih store'unu kullan
 const { updateDate: setStoreDate } = useDateStore()
@@ -79,6 +79,18 @@ const props = defineProps({
       name: null,
       url: null
     })
+  },
+  femaleName: {
+    type: String,
+    default: ''
+  },
+  maleName: {
+    type: String,
+    default: ''
+  },
+  date: {
+    type: String,
+    default: ''
   }
 })
 
@@ -103,7 +115,7 @@ interface Photo {
 }
 
 const currentImage = ref<Photo>({
-  id: props.hero_image?.id || "1",
+  id: props.hero_image?.id || '1',
   name: props.hero_image?.name || 'hero-image',
   url: props.hero_image?.url || hero // hero string (asset) fallback olacak
 })
@@ -233,11 +245,20 @@ const selectAllText = (element) => {
 
 // Component mount edildiğinde başlangıç tarihini store'a kaydet
 onMounted(() => {
-  // if (props.hero_image) {
-  //   currentImage.value = props.hero_image
-  // }else {
-  //   currentImage.value = hero
-  // }
+  if (props.maleName) {
+    names.second = props.maleName
+  }
+  if (props.femaleName) {
+    names.first = props.femaleName
+  }
+  if (props.date) {
+    selectedDate.value = props.date
+
+    const dateObj = new Date(props.date)
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi']
+    day.value = days[dateObj.getDay()]
+  }
+
   setStoreDate(selectedDate.value)
 })
 </script>
@@ -258,7 +279,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;   /* containeri her zaman kaplasın */
+  object-fit: cover; /* containeri her zaman kaplasın */
   object-position: center;
   cursor: pointer;
   transition: all 0.3s ease;

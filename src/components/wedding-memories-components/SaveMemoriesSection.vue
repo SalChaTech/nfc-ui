@@ -80,11 +80,53 @@ const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
   return response.data
 }
 
-const uploadToDrive = async () => {
+const uploadChanges = async () => {
   try {
     loading.value = true
     emit('update:loading', true)
 
+
+    if (props.memoriesData.hero.names) {
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_BASE_URL
+      })
+      const userToken = localStorage.getItem('userToken')
+
+      const firstName = props.memoriesData.hero.names.first
+      const secondName = props.memoriesData.hero.names.second
+      const requestBody = {
+        maleName: secondName,       // değişecekse gönder
+        femaleName: firstName,      // değişecekse gönder
+        date: null       // değişecekse gönder
+      }
+
+      await api.put(API_ENDPOINTS.WEDDING_MEMORIES.UPDATE, requestBody, {
+        headers: {
+          Authorization: userToken
+        }
+      })
+    }
+
+    if (props.memoriesData.hero.date) {
+      console.log('date:', props.memoriesData.hero.date)
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_BASE_URL
+      })
+      const userToken = localStorage.getItem('userToken')
+
+      const date = props.memoriesData.hero.date
+      const requestBody = {
+        maleName: null,       // değişecekse gönder
+        femaleName: null,      // değişecekse gönder
+        date: date       // değişecekse gönder
+      }
+
+      await api.put(API_ENDPOINTS.WEDDING_MEMORIES.UPDATE, requestBody, {
+        headers: {
+          Authorization: userToken
+        }
+      })
+    }
 
     if (props.memoriesData.hero.image) {
       const response = await uploadFileToDrive(props.memoriesData.hero.image)
@@ -129,7 +171,7 @@ const uploadToDrive = async () => {
       }
     }
 
-    if (uploadedAtLeastOneFile) {
+    if (uploadedAtLeastOneFile.value) {
       const api = axios.create({
         baseURL: import.meta.env.VITE_API_BASE_URL
       })
@@ -190,7 +232,7 @@ const uploadToDrive = async () => {
 
 <template>
   <div>
-    <button @click="uploadToDrive" class="upload-button">
+    <button @click="uploadChanges" class="upload-button">
       <div class="button-content">
         <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
              xmlns="http://www.w3.org/2000/svg">

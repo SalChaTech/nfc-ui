@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   },
   WEDDING_MEMORIES: {
     GET_ALL: '/wedding-memories',
-    GET_BY_USER: (userId) => `/wedding-memories/user/${userId}`
+    GET_BY_USER: '/wedding-memories/by-user',
+    UPDATE: '/wedding-memories/update',
   }
 };
