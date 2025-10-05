@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  vue-ui:
+    build: .
+    container_name: vue-ui-container
+    ports:
+      - "5173:80"   # Host 5173 portu → container 80 portu
+    restart: unless-stopped
