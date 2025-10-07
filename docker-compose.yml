@@ -5,5 +5,5 @@ services:
     build: .
     container_name: vue-ui-container
     ports:
-      - "5173:80"   # Host 5173 portu → container 80 portu
+      - "80:80"   # Host 5173 portu → container 80 portu
     restart: unless-stopped
