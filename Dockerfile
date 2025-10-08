@@ -1,34 +1,22 @@
-# 1. Stage: Build
+# ---- Stage 1: Build UI ----
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# package.json ve package-lock.json kopyala
-COPY package*.json ./
-
 # Bağımlılıkları yükle
-RUN npm install
+COPY package*.json ./
+RUN npm ci
 
-# Proje dosyalarını kopyala
+# Kodları kopyala ve build al
 COPY . .
-
-# Vite prod build
 RUN npm run build
 
-# 2. Stage: Serve
-FROM nginx:alpine
+# ---- Stage 2: Export only dist ----
+# Runtime stage'e gerek yok, sadece build çıktısı kullanılacak
+FROM alpine:3.20
 
-# Nginx default web root
-WORKDIR /usr/share/nginx/html
+WORKDIR /output
+COPY --from=build /app/dist ./
 
-# Build dosyalarını kopyala
-COPY --from=build /app/dist .
-
-# Custom Nginx config (history mode için)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Port aç
-EXPOSE 80
-
-# Nginx çalıştır
-CMD ["nginx", "-g", "daemon off;"]
+# sadece build çıktısını volume olarak paylaşacağız
+CMD ["sh", "-c", "echo 'UI build hazır /output altında' && ls -la /output"]
