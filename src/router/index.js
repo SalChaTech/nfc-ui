@@ -11,6 +11,7 @@ import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminUserControlPanel from '@/views/admin/AdminUserControlPanel.vue'
 import AdminProductControlPanel from '@/views/admin/AdminProductControlPanel.vue'
 import AdminDashboard from '@/views/admin/AdminDashboard.vue'
+import TripMemoriesPage from '@/views/TripMemoriesPage.vue'
 
 
 const routes = [
@@ -20,6 +21,7 @@ const routes = [
   { path: '/admin/user-control', name: 'AdminDashboard', component: AdminUserControlPanel },
   { path: '/admin/product-control', name: 'AdminDashboard', component: AdminProductControlPanel },
   { path: '/upload/:id', name: 'UploadWeddingMemories', component: WeddingMemoriesPage },
+  { path: '/trip/upload/:id', name: 'UploadTripMemories', component: TripMemoriesPage },
   { path: '/show/:id', name: 'ShowWeddingMemories', component: WeddingMemoriesPage },
   { path: '/auth/callback', component: LoginProcess }, // ← BU ÖNEMLİ
   { path: '/save', component: SaveMemoriesSection },
