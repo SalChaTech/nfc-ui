@@ -96,28 +96,28 @@ function itemClickHandler(photo: any, index: number) {
   currentPhotoIndex.value = index
   showModal.value = true
   isGalleryOpen.value = true
-  
+
   // Modal açıldığında direkt seçilen fotoğrafa git
   nextTick(() => {
     if (galleryContainer.value) {
       const container = galleryContainer.value
       const photoWidth = container.clientWidth + 20 // 20px margin dahil
       const scrollPosition = index * photoWidth
-      
+
       // Scroll-snap'i tamamen devre dışı bırak
       container.style.scrollSnapType = 'none'
       container.style.scrollBehavior = 'auto'
-      
+
       // Direkt olarak scroll pozisyonunu ayarla
       container.scrollLeft = scrollPosition
-      
+
       // Çok kısa gecikme ile tekrar ayarla
       setTimeout(() => {
         if (galleryContainer.value) {
           galleryContainer.value.scrollLeft = scrollPosition
         }
       }, 1)
-      
+
       // Scroll-snap'i tekrar aktif et
       setTimeout(() => {
         if (galleryContainer.value) {
@@ -195,17 +195,17 @@ function handleKeydown(event: KeyboardEvent) {
 // Gallery navigation functions
 function scrollToPhoto(index) {
   if (!galleryContainer.value) return
-  
+
   const container = galleryContainer.value
   const photoWidth = container.clientWidth + 20 // 20px margin dahil
   const scrollPosition = index * photoWidth
-  
+
   // Scroll pozisyonunu ayarla - tüm fotoğraflar için auto behavior
   container.scrollTo({
     left: scrollPosition,
     behavior: 'auto'
   })
-  
+
   currentPhotoIndex.value = index
 }
 
@@ -223,12 +223,12 @@ function prevPhoto() {
 
 function handleGalleryScroll() {
   if (!galleryContainer.value) return
-  
+
   const container = galleryContainer.value
   const photoWidth = container.clientWidth + 20 // 20px margin dahil
   const scrollLeft = container.scrollLeft
   const newIndex = Math.round(scrollLeft / photoWidth)
-  
+
   if (newIndex !== currentPhotoIndex.value && newIndex >= 0 && newIndex < allPhotos.value.length) {
     currentPhotoIndex.value = newIndex
     selectedPhoto.value = { ...allPhotos.value[newIndex], index: newIndex }
@@ -259,7 +259,7 @@ function deleteCurrentPhoto() {
   if (currentPhotoIndex.value >= 0 && currentPhotoIndex.value < allPhotos.value.length) {
     removePhoto(currentPhotoIndex.value)
     closeMenu()
-    
+
     // If we deleted the last photo, close modal
     if (allPhotos.value.length === 0) {
       closeModal()
@@ -276,9 +276,20 @@ function deleteCurrentPhoto() {
   }
 }
 
+function saveMemories() {
+  // Kaydetme işlemi burada yapılacak
+  console.log('Hatıralar kaydediliyor...', {
+    addedPhotos: localPhotos.value,
+    deletedPhotos: deletedPhotos.value
+  })
+  
+  // Başarı mesajı göster
+  alert('Hatıralar başarıyla kaydedildi!')
+}
+
 function handleTouchStart(event: TouchEvent) {
   if (!showModal.value) return
-  
+
   touchStartX.value = event.touches[0].clientX
   touchStartY.value = event.touches[0].clientY
   isDragging.value = true
@@ -286,19 +297,19 @@ function handleTouchStart(event: TouchEvent) {
 
 function handleTouchMove(event: TouchEvent) {
   if (!showModal.value || !isDragging.value) return
-  
+
   event.preventDefault() // Prevent scrolling
 }
 
 function handleTouchEnd(event: TouchEvent) {
   if (!showModal.value || !isDragging.value) return
-  
+
   touchEndX.value = event.changedTouches[0].clientX
   touchEndY.value = event.changedTouches[0].clientY
-  
+
   const deltaX = touchStartX.value - touchEndX.value
   const deltaY = touchStartY.value - touchEndY.value
-  
+
   // Only process horizontal swipes (ignore vertical scrolling)
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
     if (deltaX > 0) {
@@ -309,36 +320,36 @@ function handleTouchEnd(event: TouchEvent) {
       prevPhoto()
     }
   }
-  
+
   isDragging.value = false
 }
 
 // Mouse drag support for desktop
 function handleMouseDown(event: MouseEvent) {
   if (!showModal.value) return
-  
+
   touchStartX.value = event.clientX
   touchStartY.value = event.clientY
   isDragging.value = true
-  
+
   event.preventDefault()
 }
 
 function handleMouseMove(event: MouseEvent) {
   if (!showModal.value || !isDragging.value) return
-  
+
   event.preventDefault()
 }
 
 function handleMouseUp(event: MouseEvent) {
   if (!showModal.value || !isDragging.value) return
-  
+
   touchEndX.value = event.clientX
   touchEndY.value = event.clientY
-  
+
   const deltaX = touchStartX.value - touchEndX.value
   const deltaY = touchStartY.value - touchEndY.value
-  
+
   // Only process horizontal drags
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
     if (deltaX > 0) {
@@ -349,14 +360,14 @@ function handleMouseUp(event: MouseEvent) {
       prevPhoto()
     }
   }
-  
+
   isDragging.value = false
 }
 
 // Slideshow functions
 function startSlideshow() {
   if (allPhotos.value.length <= 1) return
-  
+
   stopSlideshow()
   isSlideshowPlaying.value = true
   slideshowInterval.value = setInterval(() => {
@@ -407,8 +418,13 @@ onUnmounted(() => {
   <div class="hero-container">
     <img :src="currentHeroImage"
          class="hero-image" alt="Hero Image">
-    
-    
+
+    <!-- Title and date overlay -->
+    <div class="hero-overlay">
+      <div class="hero-title">Gölyazı Hatırası</div>
+      <div class="hero-date">15 Haziran 2024</div>
+    </div>
+
     <!-- Photo counter -->
     <div class="hero-photo-counter" v-if="allPhotos.length > 1">
       {{ currentHeroIndex + 1 }} / {{ allPhotos.length }}
@@ -430,6 +446,20 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <!-- Kaydet butonu -->
+    <div class="save-button-section">
+      <button class="save-button" @click="saveMemories">
+        <div class="button-content">
+          <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="button-text">Hatıraları Kaydet</span>
+        </div>
+      </button>
+    </div>
+
     <!-- Gizli dosya input -->
     <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*" multiple
            style="display: none;" v-if="props.editable" />
@@ -437,8 +467,8 @@ onUnmounted(() => {
     <!-- Fotoğraf modal -->
     <div v-if="showModal" class="photo-modal" @click="closeModal">
       <!-- Three dots menu button -->
-      <button class="three-dots-btn" 
-              @click="toggleMenu" 
+      <button class="three-dots-btn"
+              @click="toggleMenu"
               v-if="props.editable"
               title="Seçenekler">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -449,8 +479,8 @@ onUnmounted(() => {
       </button>
 
       <!-- Dropdown menu -->
-      <div v-if="showMenu" 
-           class="dropdown-menu" 
+      <div v-if="showMenu"
+           class="dropdown-menu"
            :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
            @click.stop>
         <button class="delete-btn" @click="deleteCurrentPhoto">
@@ -459,26 +489,26 @@ onUnmounted(() => {
       </div>
 
       <!-- Gallery container with all photos -->
-      <div class="gallery-container" 
+      <div class="gallery-container"
            ref="galleryContainer"
            @scroll="handleGalleryScroll">
-        <div v-for="(photo, index) in allPhotos" 
-             :key="index" 
+        <div v-for="(photo, index) in allPhotos"
+             :key="index"
              class="gallery-photo"
              @click="closeModal">
-          <img :src="photo.url" 
-               :alt="`Fotoğraf ${index + 1}`" 
+          <img :src="photo.url"
+               :alt="`Fotoğraf ${index + 1}`"
                class="gallery-image"
                @click.stop />
         </div>
       </div>
 
-      <!-- Fotoğraf sayacı -->
-      <div class="photo-counter" @click.stop>
-        {{ currentPhotoIndex + 1 }} / {{ allPhotos.length }}
-      </div>
+    <!-- Fotoğraf sayacı -->
+    <div class="photo-counter" @click.stop>
+      {{ currentPhotoIndex + 1 }} / {{ allPhotos.length }}
     </div>
   </div>
+</div>
 
 
 </template>
@@ -510,6 +540,40 @@ onUnmounted(() => {
   filter: brightness(1.1);
 }
 
+
+.hero-overlay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  text-align: left;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px 25px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hero-title {
+  font-family: var(--font-primary);
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  color: white;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.hero-date {
+  font-family: var(--font-secondary);
+  font-size: 1.3rem;
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.7);
+}
 
 .hero-photo-counter {
   position: absolute;
@@ -664,6 +728,22 @@ onUnmounted(() => {
   .hero-container {
   }
 
+  .hero-overlay {
+    padding: 15px 20px;
+    border-radius: 12px;
+    top: 15px;
+    left: 15px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  .hero-date {
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+  }
 
   .hero-photo-counter {
     top: 15px;
@@ -700,6 +780,22 @@ onUnmounted(() => {
   .hero-image {
   }
 
+  .hero-overlay {
+    padding: 12px 16px;
+    border-radius: 10px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .hero-title {
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+  }
+
+  .hero-date {
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+  }
 
   .hero-photo-counter {
     top: 10px;
@@ -956,6 +1052,81 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* Kaydet butonu */
+.save-button-section {
+  width: 100%;
+  margin: var(--padding-2xl) 0;
+}
+
+.save-button {
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.save-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.save-button:hover::before {
+  left: 100%;
+}
+
+.save-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+}
+
+.save-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.2);
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.button-icon {
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.save-button:hover .button-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.button-text {
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover .button-text {
+  transform: translateX(2px);
+}
+
 
 /* Responsive tasarım - her satırda 3 fotoğraf */
 @media (max-width: 768px) {
@@ -981,6 +1152,19 @@ onUnmounted(() => {
   .add-photo-item {
     width: 100%;
     height: 100%;
+  }
+
+  .save-button-section {
+    margin: var(--padding-xl) 0;
+  }
+
+  .save-button {
+    width: 100%;
+    height: 55px;
+  }
+
+  .button-text {
+    font-size: 1.2rem;
   }
 
 }
@@ -1012,6 +1196,24 @@ onUnmounted(() => {
   .add-photo-item {
     width: 100%;
     height: 100%;
+  }
+
+  .save-button-section {
+    margin: var(--padding-lg) 0;
+  }
+
+  .save-button {
+    width: 100%;
+    height: 50px;
+  }
+
+  .button-text {
+    font-size: 1.1rem;
+  }
+
+  .button-icon {
+    width: 20px;
+    height: 20px;
   }
 
 }

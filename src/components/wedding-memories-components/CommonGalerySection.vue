@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 
 const props = defineProps({
   editable: {
     type: Boolean,
-    default: false
+    default: true
   },
   common_gallery_photos: {
     type: Array,
@@ -40,6 +40,14 @@ const allPhotos = computed(() => [
   ...localPhotos.value
 ])
 
+// Current hero image for slideshow
+const currentHeroImage = computed(() => {
+  if (allPhotos.value.length === 0) {
+    return hero // Default hero image if no photos
+  }
+  return allPhotos.value[currentHeroIndex.value]?.url || hero
+})
+
 
 const emit = defineEmits<{
   (e: 'update:added_common_gallery_photos', photos: Photo[]): void
@@ -60,14 +68,72 @@ const imageUploadRef = ref(null)
 const selectedPhoto = ref(null)
 const showModal = ref(false)
 
+// Touch/swipe navigation
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const touchEndX = ref(0)
+const touchEndY = ref(0)
+const isDragging = ref(false)
+
+// Gallery modal state
+const galleryContainer = ref(null)
+const currentPhotoIndex = ref(0)
+const isGalleryOpen = ref(false)
+
+// Three dots menu state
+const showMenu = ref(false)
+const menuPosition = ref({ x: 0, y: 0 })
+
+// Slideshow functionality
+const currentHeroIndex = ref(0)
+const slideshowInterval = ref(null)
+const isSlideshowPlaying = ref(true)
+const slideshowSpeed = 5000 // 5 seconds per photo
+
 function itemClickHandler(photo: any, index: number) {
   selectedPhoto.value = { ...photo, index }
+  currentPhotoIndex.value = index
   showModal.value = true
+  isGalleryOpen.value = true
+
+  // Modal açıldığında direkt seçilen fotoğrafa git
+  nextTick(() => {
+    if (galleryContainer.value) {
+      const container = galleryContainer.value
+      const photoWidth = container.clientWidth + 20 // 20px margin dahil
+      const scrollPosition = index * photoWidth
+
+      // Scroll-snap'i tamamen devre dışı bırak
+      container.style.scrollSnapType = 'none'
+      container.style.scrollBehavior = 'auto'
+
+      // Direkt olarak scroll pozisyonunu ayarla
+      container.scrollLeft = scrollPosition
+
+      // Çok kısa gecikme ile tekrar ayarla
+      setTimeout(() => {
+        if (galleryContainer.value) {
+          galleryContainer.value.scrollLeft = scrollPosition
+        }
+      }, 1)
+
+      // Scroll-snap'i tekrar aktif et
+      setTimeout(() => {
+        if (galleryContainer.value) {
+          galleryContainer.value.style.scrollSnapType = 'x mandatory'
+          galleryContainer.value.style.scrollBehavior = 'smooth'
+        }
+      }, 200)
+    }
+  })
 }
 
 function closeModal() {
   showModal.value = false
   selectedPhoto.value = null
+  isGalleryOpen.value = false
+  currentPhotoIndex.value = 0
+  showMenu.value = false
 }
 
 function triggerImageUpload() {
@@ -116,43 +182,231 @@ function removePhoto(index: number) {
   }
 }
 
-function nextPhoto() {
-  if (selectedPhoto.value && selectedPhoto.value.index < photos.value.length - 1) {
-    const nextIndex = selectedPhoto.value.index + 1
-    selectedPhoto.value = { ...photos.value[nextIndex], index: nextIndex }
-  }
-}
-
-function prevPhoto() {
-  if (selectedPhoto.value && selectedPhoto.value.index > 0) {
-    const prevIndex = selectedPhoto.value.index - 1
-    selectedPhoto.value = { ...photos.value[prevIndex], index: prevIndex }
-  }
-}
 
 function handleKeydown(event: KeyboardEvent) {
   if (showModal.value) {
-    if (event.key === 'ArrowRight') {
-      nextPhoto()
-    } else if (event.key === 'ArrowLeft') {
-      prevPhoto()
-    } else if (event.key === 'Escape') {
+    if (event.key === 'Escape') {
       closeModal()
     }
   }
 }
 
+// Gallery navigation functions
+function scrollToPhoto(index) {
+  if (!galleryContainer.value) return
+
+  const container = galleryContainer.value
+  const photoWidth = container.clientWidth + 20 // 20px margin dahil
+  const scrollPosition = index * photoWidth
+
+  // Scroll pozisyonunu ayarla - tüm fotoğraflar için auto behavior
+  container.scrollTo({
+    left: scrollPosition,
+    behavior: 'auto'
+  })
+
+  currentPhotoIndex.value = index
+}
+
+function nextPhoto() {
+  if (currentPhotoIndex.value < allPhotos.value.length - 1) {
+    scrollToPhoto(currentPhotoIndex.value + 1)
+  }
+}
+
+function prevPhoto() {
+  if (currentPhotoIndex.value > 0) {
+    scrollToPhoto(currentPhotoIndex.value - 1)
+  }
+}
+
+function handleGalleryScroll() {
+  if (!galleryContainer.value) return
+
+  const container = galleryContainer.value
+  const photoWidth = container.clientWidth + 20 // 20px margin dahil
+  const scrollLeft = container.scrollLeft
+  const newIndex = Math.round(scrollLeft / photoWidth)
+
+  if (newIndex !== currentPhotoIndex.value && newIndex >= 0 && newIndex < allPhotos.value.length) {
+    currentPhotoIndex.value = newIndex
+    selectedPhoto.value = { ...allPhotos.value[newIndex], index: newIndex }
+  }
+}
+
+// Three dots menu functions
+function toggleMenu(event) {
+  event.stopPropagation()
+  showMenu.value = !showMenu.value
+  if (showMenu.value) {
+    // Menüyü üç nokta butonunun sol altında konumlandır
+    const buttonRect = event.target.getBoundingClientRect()
+    const menuWidth = 150
+    const menuHeight = 50
+    menuPosition.value = {
+      x: buttonRect.left - menuWidth + 20, // Sol alt
+      y: buttonRect.bottom + 15 // Daha fazla boşluk ile altında
+    }
+  }
+}
+
+function closeMenu() {
+  showMenu.value = false
+}
+
+function deleteCurrentPhoto() {
+  if (currentPhotoIndex.value >= 0 && currentPhotoIndex.value < allPhotos.value.length) {
+    removePhoto(currentPhotoIndex.value)
+    closeMenu()
+
+    // If we deleted the last photo, close modal
+    if (allPhotos.value.length === 0) {
+      closeModal()
+    } else {
+      // Adjust index if we deleted a photo before current
+      if (currentPhotoIndex.value >= allPhotos.value.length) {
+        currentPhotoIndex.value = allPhotos.value.length - 1
+      }
+      // Scroll to current photo
+      nextTick(() => {
+        scrollToPhoto(currentPhotoIndex.value)
+      })
+    }
+  }
+}
+
+function handleTouchStart(event: TouchEvent) {
+  if (!showModal.value) return
+
+  touchStartX.value = event.touches[0].clientX
+  touchStartY.value = event.touches[0].clientY
+  isDragging.value = true
+}
+
+function handleTouchMove(event: TouchEvent) {
+  if (!showModal.value || !isDragging.value) return
+
+  event.preventDefault() // Prevent scrolling
+}
+
+function handleTouchEnd(event: TouchEvent) {
+  if (!showModal.value || !isDragging.value) return
+
+  touchEndX.value = event.changedTouches[0].clientX
+  touchEndY.value = event.changedTouches[0].clientY
+
+  const deltaX = touchStartX.value - touchEndX.value
+  const deltaY = touchStartY.value - touchEndY.value
+
+  // Only process horizontal swipes (ignore vertical scrolling)
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    if (deltaX > 0) {
+      // Swipe left - next photo
+      nextPhoto()
+    } else {
+      // Swipe right - previous photo
+      prevPhoto()
+    }
+  }
+
+  isDragging.value = false
+}
+
+// Mouse drag support for desktop
+function handleMouseDown(event: MouseEvent) {
+  if (!showModal.value) return
+
+  touchStartX.value = event.clientX
+  touchStartY.value = event.clientY
+  isDragging.value = true
+
+  event.preventDefault()
+}
+
+function handleMouseMove(event: MouseEvent) {
+  if (!showModal.value || !isDragging.value) return
+
+  event.preventDefault()
+}
+
+function handleMouseUp(event: MouseEvent) {
+  if (!showModal.value || !isDragging.value) return
+
+  touchEndX.value = event.clientX
+  touchEndY.value = event.clientY
+
+  const deltaX = touchStartX.value - touchEndX.value
+  const deltaY = touchStartY.value - touchEndY.value
+
+  // Only process horizontal drags
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    if (deltaX > 0) {
+      // Drag left - next photo
+      nextPhoto()
+    } else {
+      // Drag right - previous photo
+      prevPhoto()
+    }
+  }
+
+  isDragging.value = false
+}
+
+// Slideshow functions
+function startSlideshow() {
+  if (allPhotos.value.length <= 1) return
+
+  stopSlideshow()
+  isSlideshowPlaying.value = true
+  slideshowInterval.value = setInterval(() => {
+    currentHeroIndex.value = (currentHeroIndex.value + 1) % allPhotos.value.length
+  }, slideshowSpeed)
+}
+
+function stopSlideshow() {
+  if (slideshowInterval.value) {
+    clearInterval(slideshowInterval.value)
+    slideshowInterval.value = null
+  }
+  isSlideshowPlaying.value = false
+}
+
+
+// Watch for changes in photos to restart slideshow
+watch(allPhotos, (newPhotos) => {
+  if (newPhotos.length > 1) {
+    startSlideshow()
+  } else {
+    stopSlideshow()
+  }
+}, { immediate: true })
+
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  document.addEventListener('click', (event) => {
+    // Menü dışında herhangi bir yere tıklayınca kapat
+    if (showMenu.value && !event.target.closest('.dropdown-menu') && !event.target.closest('.three-dots-btn')) {
+      closeMenu()
+    }
+  })
+  // Start slideshow if there are photos
+  if (allPhotos.value.length > 1) {
+    startSlideshow()
+  }
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  stopSlideshow()
 })
 </script>
 
+
 <template>
+
+
   <div class="common-gallery">
+
     <div class="gallery-header">
       <h2>Galeri</h2>
     </div>
@@ -162,17 +416,6 @@ onUnmounted(() => {
       <div v-for="(photo, index) in allPhotos" :key="index" class="gallery-item"
            @click="itemClickHandler(photo, index)">
         <img :src="photo.url" :alt="`Fotoğraf ${index + 1}`" />
-        <button class="remove-btn" @click.stop="props.editable ? removePhoto(index) : null"
-                v-if="props.editable"
-                title="Fotoğrafı kaldır">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
-        </button>
       </div>
 
       <!-- Resim ekle butonu -->
@@ -187,36 +430,292 @@ onUnmounted(() => {
 
     <!-- Fotoğraf modal -->
     <div v-if="showModal" class="photo-modal" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <button class="close-btn" @click="closeModal">&times;</button>
+      <!-- Three dots menu button -->
+      <button class="three-dots-btn"
+              @click="toggleMenu"
+              v-if="props.editable"
+              title="Seçenekler">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="1" fill="currentColor" />
+          <circle cx="12" cy="5" r="1" fill="currentColor" />
+          <circle cx="12" cy="19" r="1" fill="currentColor" />
+        </svg>
+      </button>
 
-        <!-- Sol ok butonu -->
-        <button v-if="selectedPhoto && selectedPhoto.index > 0" class="nav-btn nav-prev"
-                @click="prevPhoto"
-                title="Önceki fotoğraf">
-          ‹
+      <!-- Dropdown menu -->
+      <div v-if="showMenu"
+           class="dropdown-menu"
+           :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
+           @click.stop>
+        <button class="delete-btn" @click="deleteCurrentPhoto">
+          Albümden kaldır
         </button>
+      </div>
 
-        <!-- Sağ ok butonu -->
-        <button v-if="selectedPhoto && selectedPhoto.index < allPhotos.length - 1"
-                class="nav-btn nav-next"
-                @click="nextPhoto" title="Sonraki fotoğraf">
-          ›
-        </button>
-
-        <img :src="selectedPhoto?.url" :alt="`Fotoğraf ${selectedPhoto?.index + 1}`" />
-
-        <!-- Fotoğraf sayacı -->
-        <div class="photo-counter">
-          {{ (selectedPhoto?.index || 0) + 1 }} / {{ allPhotos.length }}
+      <!-- Gallery container with all photos -->
+      <div class="gallery-container"
+           ref="galleryContainer"
+           @scroll="handleGalleryScroll">
+        <div v-for="(photo, index) in allPhotos"
+             :key="index"
+             class="gallery-photo"
+             @click="closeModal">
+          <img :src="photo.url"
+               :alt="`Fotoğraf ${index + 1}`"
+               class="gallery-image"
+               @click.stop />
         </div>
+      </div>
+
+      <!-- Fotoğraf sayacı -->
+      <div class="photo-counter" @click.stop>
+        {{ currentPhotoIndex + 1 }} / {{ allPhotos.length }}
       </div>
     </div>
   </div>
+
+
 </template>
 
 <style scoped>
 /* Font import'ları artık theme.css'de */
+
+.hero-container {
+  position: relative;
+  min-height: 85vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* containeri her zaman kaplasın */
+  object-position: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hero-image:hover {
+  transform: scale(1.01);
+  filter: brightness(1.1);
+}
+
+
+.hero-photo-counter {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(5px);
+  z-index: 10;
+}
+
+.invitation-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  max-width: 320px;
+  width: 80%;
+  padding: var(--padding-2xl) var(--padding-lg);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.decorative-top,
+.decorative-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--padding-lg) 0;
+}
+
+.decorative-line {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, white, transparent);
+  margin: 0 var(--padding-sm);
+}
+
+.decorative-dot {
+  width: var(--padding-sm);
+  height: var(--padding-sm);
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.invitation-content {
+  margin: var(--padding-2xl) 0;
+}
+
+.invitation-text {
+  margin-bottom: var(--padding-2xl);
+}
+
+.name {
+  font-family: var(--font-primary);
+  font-size: 3.5rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+  margin: var(--padding-xs) 0;
+}
+
+.name.editable {
+  cursor: pointer;
+  transition: var(--transition-normal) var(--ease-in-out);
+  border-radius: var(--radius-md);
+  padding: var(--padding-xs) var(--padding-sm);
+  margin: var(--padding-xs) calc(-1 * var(--padding-sm));
+}
+
+.name.editable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
+}
+
+.name.editable:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.ampersand {
+  font-family: var(--font-secondary);
+  font-size: 2.5rem;
+  font-style: italic;
+  font-weight: var(--font-weight-light);
+  opacity: 0.9;
+  margin: var(--padding-lg) 0;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.date-section {
+  position: relative;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: var(--padding-xl);
+  margin-top: var(--padding-xl);
+}
+
+.date-text {
+  font-family: var(--font-secondary);
+  font-size: 1.8rem;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--padding-sm);
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  letter-spacing: 1px;
+}
+
+.time-text {
+  font-family: var(--font-secondary);
+  font-size: 1.6rem;
+  font-weight: var(--font-weight-light);
+  opacity: 0.9;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+}
+
+/* Editable date styles */
+.date-text.editable {
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition-normal) var(--ease-in-out);
+  border-radius: var(--radius-sm);
+  padding: var(--padding-xs) var(--padding-sm);
+  margin: var(--padding-xs) calc(-1 * var(--padding-sm));
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.date-text.editable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.02);
+}
+
+.date-text.editable:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive design - maintain mobile-like appearance on all screens */
+@media (max-width: 768px) {
+  .hero-container {
+  }
+
+
+  .hero-photo-counter {
+    top: 15px;
+    right: 15px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .invitation-container {
+    padding: var(--padding-2xl) var(--padding-lg);
+  }
+
+  .name {
+    font-size: 2.8rem;
+  }
+
+  .date-text {
+    font-size: 1.5rem;
+  }
+
+  .time-text {
+    font-size: 1.3rem;
+  }
+
+  .decorative-line {
+    width: var(--size-2xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-container {
+  }
+
+  .hero-image {
+  }
+
+
+  .hero-photo-counter {
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .name {
+    font-size: 2.2rem;
+  }
+
+  .date-text {
+    font-size: 1.3rem;
+  }
+
+  .time-text {
+    font-size: 1.1rem;
+  }
+}
+
 
 .common-gallery {
   width: 100%;
@@ -281,57 +780,14 @@ onUnmounted(() => {
   transform: scale(1.05);
 }
 
-.remove-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: var(--size-xl);
-  height: var(--size-xl);
-  background: var(--bg-white);
-  color: var(--color-danger);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: var(--transition-normal) var(--ease-in-out);
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.remove-btn svg {
-  width: var(--size-md);
-  height: var(--size-md);
-  stroke: var(--color-danger);
-}
-
-.gallery-item:hover .remove-btn {
-  opacity: 1;
-}
-
-.remove-btn:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px var(--shadow-danger);
-}
-
-.remove-btn:hover svg {
-  stroke: var(--color-danger);
-  stroke-width: 2.5;
-}
-
 
 /* Resim ekle butonu */
 .add-photo-item {
   aspect-ratio: 4/3;
   border-radius: var(--radius-xl);
   cursor: pointer;
-  border: 2px dashed var(--color-text-light);
-  background: var(--gradient-primary);
+  border: 2px dashed #667eea;
+  background: var(--gradient-hover);
   transition: var(--transition-slow) var(--ease-in-out);
   display: flex;
   align-items: center;
@@ -352,7 +808,7 @@ onUnmounted(() => {
 .add-icon {
   font-size: 3rem;
   font-weight: 300;
-  color: var(--color-secondary);
+  color: #667eea;
   transition: var(--transition-normal) var(--ease-in-out);
 }
 
@@ -368,112 +824,129 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: var(--padding-lg);
+  padding: 0;
   margin: 0;
   width: 100vw;
   height: 100vh;
 }
 
-.modal-content {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  background: white;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  margin: 0 auto;
+/* Gallery container styles */
+.gallery-container {
   display: flex;
-  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.gallery-photo {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: auto;
+  min-height: 100vh;
+  display: flex;
   align-items: center;
   justify-content: center;
+  scroll-snap-align: start;
+  margin-right: 20px;
 }
 
-.modal-content img {
-  width: 100%;
+.gallery-image {
+  width: 100vw;
   height: auto;
-  max-height: 80vh;
+  max-height: 100vh;
   object-fit: contain;
   display: block;
-  margin: 0 auto;
 }
 
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
+/* Three dots menu button */
+.three-dots-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
   background: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
   border-radius: 50%;
-  width: var(--size-2xl);
-  height: var(--size-2xl);
-  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-normal) var(--ease-in-out);
-  z-index: 1001;
+  transition: all 0.3s ease;
+  z-index: 1002;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.close-btn:hover {
+.three-dots-btn:hover {
   background: rgba(0, 0, 0, 0.9);
   transform: scale(1.1);
 }
 
-/* Navigasyon butonları */
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--size-3xl);
-  height: var(--size-3xl);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
+/* Dropdown menu */
+.dropdown-menu {
+  position: fixed;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1003;
+  min-width: 150px;
+  overflow: hidden;
+}
+
+.delete-btn {
+  width: calc(100% - 16px);
+  padding: 8px 16px;
+  background: none;
   border: none;
-  border-radius: 50%;
+  color: #dc2626;
   cursor: pointer;
-  font-size: 24px;
-  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-normal) var(--ease-in-out);
-  z-index: 20;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 8px;
+  border-radius: 4px;
 }
 
-.nav-prev {
-  left: var(--padding-lg);
+.delete-btn:hover {
+  background: #dc2626;
+  color: white;
 }
 
-.nav-next {
-  right: var(--padding-lg);
-}
-
-.nav-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: translateY(-50%) scale(1.1);
-}
 
 /* Fotoğraf sayacı */
 .photo-counter {
-  position: absolute;
-  bottom: var(--padding-lg);
+  position: fixed;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: var(--padding-sm) var(--padding-md);
-  border-radius: 20px;
-  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 16px;
   font-weight: 500;
-  z-index: 20;
+  z-index: 1001;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 
@@ -563,3 +1036,4 @@ onUnmounted(() => {
 
 }
 </style>
+
