@@ -75,6 +75,7 @@ const logoAnimation = () => {
 // Backend-mediated Google login
 const loginWithGoogle = () => {
   isLoading.value = true
+  console.log('Google login',import.meta.env.VITE_API_BASE_URL)
   window.location.href = `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.GOOGLE_AUTH.GOOGLE}`;
 
 }
