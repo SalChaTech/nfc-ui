@@ -126,6 +126,7 @@ const onPasswordSubmit = async (password: string) => {
 
     await fetchDriveFiles()
 
+    saveLoading.value = false
 
   } catch (error: any) {
     const msg = error.response?.data || 'Bilinmeyen bir hata oluştu'
