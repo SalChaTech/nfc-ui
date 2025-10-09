@@ -7,10 +7,18 @@ import SaveMemoriesSection from '@/components/wedding-memories-components/SaveMe
 import axios from 'axios'
 import Error404Page from '@/views/Error404Page.vue'
 import { API_ENDPOINTS } from '../config/apiEndpoints.ts'
+import AdminLogin from '@/views/admin/AdminLogin.vue'
+import AdminUserControlPanel from '@/views/admin/AdminUserControlPanel.vue'
+import AdminProductControlPanel from '@/views/admin/AdminProductControlPanel.vue'
+import AdminDashboard from '@/views/admin/AdminDashboard.vue'
 
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginPage, meta: { allowDirect: false } },
+  { path: '/admin/login', name: 'AdminLogin', component: AdminLogin },
+  { path: '/admin/dashboard', name: 'AdminLogin', component: AdminDashboard },
+  { path: '/admin/user-control', name: 'AdminDashboard', component: AdminUserControlPanel },
+  { path: '/admin/product-control', name: 'AdminDashboard', component: AdminProductControlPanel },
   { path: '/upload/:id', name: 'UploadWeddingMemories', component: WeddingMemoriesPage },
   { path: '/show/:id', name: 'ShowWeddingMemories', component: WeddingMemoriesPage },
   { path: '/auth/callback', component: LoginProcess }, // ← BU ÖNEMLİ
@@ -60,6 +68,7 @@ router.beforeEach(async (to, from) => {
   }
 
   if (to.name === 'Login' && !from.name && !to.query.redirect) {
+    console.log('Login page')
     // Eğer kullanıcı direkt /login yazdıysa ve redirect param yoksa → 404
     return { name: 'NotFound' }
   }
