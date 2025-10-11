@@ -5,19 +5,19 @@ import Sidebar from '@/components/admin-components/Sidebar.vue'
 
 const router = useRouter()
 
-// User management state
-const users = ref([
-  { id: 1, email: 'jese@example.com', password: 'password123', productid: 'PROD-001', driveappfolderid: 'folder-abc123' },
-  { id: 2, email: 'bonnie@example.com', password: 'password123', productid: 'PROD-002', driveappfolderid: 'folder-def456' },
-  { id: 3, email: 'leslie@example.com', password: 'password123', productid: 'PROD-003', driveappfolderid: 'folder-ghi789' },
-  { id: 4, email: 'michael@example.com', password: 'password123', productid: 'PROD-004', driveappfolderid: 'folder-jkl012' },
-  { id: 5, email: 'joseph@example.com', password: 'password123', productid: 'PROD-005', driveappfolderid: 'folder-mno345' },
-  { id: 6, email: 'robert@example.com', password: 'password123', productid: 'PROD-006', driveappfolderid: 'folder-pqr678' }
+// Category management state
+const categories = ref([
+  { id: 1, name: 'Düğün' },
+  { id: 2, name: 'Nişan' },
+  { id: 3, name: 'Sünnet' },
+  { id: 4, name: 'Doğum Günü' },
+  { id: 5, name: 'Mezuniyet' },
+  { id: 6, name: 'Yıldönümü' }
 ])
 
 const searchQuery = ref('')
-const productFilter = ref('')
-const selectedUsers = ref([])
+const selectedCategories = ref([])
+const showBulkActions = ref(false)
 const sortField = ref('id')
 const sortDirection = ref('asc')
 const currentPage = ref(1)
@@ -26,37 +26,24 @@ const itemsPerPage = ref(10)
 // Modal state
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const newUser = ref({
-  email: '',
-  password: '',
-  productid: '',
-  driveappfolderid: ''
+const newCategory = ref({
+  name: ''
 })
-const editUser = ref({
+const editCategory = ref({
   id: null,
-  email: '',
-  password: '',
-  productid: '',
-  driveappfolderid: ''
+  name: ''
 })
 const isSubmitting = ref(false)
 
 // Computed properties
-const filteredUsers = computed(() => {
-  let filtered = users.value
+const filteredCategories = computed(() => {
+  let filtered = categories.value
 
   // Search filter
   if (searchQuery.value) {
-    filtered = filtered.filter(user =>
-      user.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      user.productid.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      user.driveappfolderid.toLowerCase().includes(searchQuery.value.toLowerCase())
+    filtered = filtered.filter(category =>
+      category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
-  }
-
-  // Product ID filter
-  if (productFilter.value) {
-    filtered = filtered.filter(user => user.productid === productFilter.value)
   }
 
   // Sort
@@ -74,15 +61,23 @@ const filteredUsers = computed(() => {
   return filtered
 })
 
-const paginatedUsers = computed(() => {
+const paginatedCategories = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
-  return filteredUsers.value.slice(start, end)
+  return filteredCategories.value.slice(start, end)
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(filteredUsers.value.length / itemsPerPage.value)
+  return Math.ceil(filteredCategories.value.length / itemsPerPage.value)
 })
+
+const navigateToProducts = () => {
+  router.push('/admin/products')
+}
+
+const navigateToUsers = () => {
+  router.push('/admin/users')
+}
 
 const logout = () => {
   if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
@@ -93,7 +88,7 @@ const logout = () => {
   }
 }
 
-// User management functions
+// Category management functions
 const sortBy = (field: string) => {
   if (sortField.value === field) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
@@ -104,145 +99,132 @@ const sortBy = (field: string) => {
 }
 
 const toggleSelectAll = () => {
-  if (selectedUsers.value.length === filteredUsers.value.length) {
-    selectedUsers.value = []
+  if (selectedCategories.value.length === filteredCategories.value.length) {
+    selectedCategories.value = []
   } else {
-    selectedUsers.value = filteredUsers.value.map(user => user.id)
+    selectedCategories.value = filteredCategories.value.map(category => category.id)
   }
 }
 
-const toggleUserSelection = (userId: number) => {
-  const index = selectedUsers.value.indexOf(userId)
+const toggleCategorySelection = (categoryId: number) => {
+  const index = selectedCategories.value.indexOf(categoryId)
   if (index > -1) {
-    selectedUsers.value.splice(index, 1)
+    selectedCategories.value.splice(index, 1)
   } else {
-    selectedUsers.value.push(userId)
+    selectedCategories.value.push(categoryId)
   }
+}
+
+const toggleBulkActions = () => {
+  showBulkActions.value = !showBulkActions.value
 }
 
 const bulkDelete = () => {
-  if (confirm(`${selectedUsers.value.length} kullanıcıyı silmek istediğinizden emin misiniz?`)) {
-    users.value = users.value.filter(user => !selectedUsers.value.includes(user.id))
-    selectedUsers.value = []
+  if (confirm(`${selectedCategories.value.length} kategoriyi silmek istediğinizden emin misiniz?`)) {
+    categories.value = categories.value.filter(category => !selectedCategories.value.includes(category.id))
+    selectedCategories.value = []
+    showBulkActions.value = false
   }
 }
 
 // Modal functions
 const openAddModal = () => {
   showAddModal.value = true
-  newUser.value = {
-    email: '',
-    password: '',
-    productid: '',
-    driveappfolderid: ''
+  newCategory.value = {
+    name: ''
   }
 }
 
 const closeAddModal = () => {
   showAddModal.value = false
-  newUser.value = {
-    email: '',
-    password: '',
-    productid: '',
-    driveappfolderid: ''
+  newCategory.value = {
+    name: ''
   }
 }
 
-const addNewUser = async () => {
-  if (!newUser.value.email || !newUser.value.password || !newUser.value.productid || !newUser.value.driveappfolderid) {
-    alert('Lütfen tüm alanları doldurun.')
+const addNewCategory = async () => {
+  if (!newCategory.value.name) {
+    alert('Lütfen kategori adını girin.')
     return
   }
 
   isSubmitting.value = true
-  
+
   try {
     // Generate new ID
-    const newId = Math.max(...users.value.map(u => u.id)) + 1
-    
-    // Add new user
-    users.value.push({
+    const newId = Math.max(...categories.value.map(c => c.id)) + 1
+
+    // Add new category
+    categories.value.push({
       id: newId,
-      email: newUser.value.email,
-      password: newUser.value.password,
-      productid: newUser.value.productid,
-      driveappfolderid: newUser.value.driveappfolderid
+      name: newCategory.value.name
     })
-    
+
     // Close modal and reset form
     closeAddModal()
-    
+
     // Show success message
-    alert('Kullanıcı başarıyla eklendi!')
+    alert('Kategori başarıyla eklendi!')
   } catch (error) {
-    alert('Kullanıcı eklenirken bir hata oluştu.')
+    alert('Kategori eklenirken bir hata oluştu.')
   } finally {
     isSubmitting.value = false
   }
 }
 
 // Edit functions
-const openEditModal = (user) => {
+const openEditModal = (category) => {
   showEditModal.value = true
-  editUser.value = {
-    id: user.id,
-    email: user.email,
-    password: user.password,
-    productid: user.productid,
-    driveappfolderid: user.driveappfolderid
+  editCategory.value = {
+    id: category.id,
+    name: category.name
   }
 }
 
 const closeEditModal = () => {
   showEditModal.value = false
-  editUser.value = {
+  editCategory.value = {
     id: null,
-    email: '',
-    password: '',
-    productid: '',
-    driveappfolderid: ''
+    name: ''
   }
 }
 
-const updateUser = async () => {
-  if (!editUser.value.email || !editUser.value.password || !editUser.value.productid || !editUser.value.driveappfolderid) {
-    alert('Lütfen tüm alanları doldurun.')
+const updateCategory = async () => {
+  if (!editCategory.value.name) {
+    alert('Lütfen kategori adını girin.')
     return
   }
 
   isSubmitting.value = true
-  
+
   try {
-    // Find and update user
-    const userIndex = users.value.findIndex(u => u.id === editUser.value.id)
-    if (userIndex !== -1) {
-      users.value[userIndex] = {
-        id: editUser.value.id,
-        email: editUser.value.email,
-        password: editUser.value.password,
-        productid: editUser.value.productid,
-        driveappfolderid: editUser.value.driveappfolderid
+    // Find and update category
+    const categoryIndex = categories.value.findIndex(c => c.id === editCategory.value.id)
+    if (categoryIndex !== -1) {
+      categories.value[categoryIndex] = {
+        id: editCategory.value.id,
+        name: editCategory.value.name
       }
     }
-    
+
     // Close modal and reset form
     closeEditModal()
-    
+
     // Show success message
-    alert('Kullanıcı başarıyla güncellendi!')
+    alert('Kategori başarıyla güncellendi!')
   } catch (error) {
-    alert('Kullanıcı güncellenirken bir hata oluştu.')
+    alert('Kategori güncellenirken bir hata oluştu.')
   } finally {
     isSubmitting.value = false
   }
 }
 
 // Delete function
-const deleteUser = (userId) => {
-  const user = users.value.find(u => u.id === userId)
-  if (user && confirm(`${user.email} kullanıcısını silmek istediğinizden emin misiniz?`)) {
-    users.value = users.value.filter(u => u.id !== userId)
-    alert('Kullanıcı başarıyla silindi!')
+const deleteCategory = (categoryId) => {
+  const category = categories.value.find(c => c.id === categoryId)
+  if (category && confirm(`${category.name} kategorisini silmek istediğinizden emin misiniz?`)) {
+    categories.value = categories.value.filter(c => c.id !== categoryId)
+    alert('Kategori başarıyla silindi!')
   }
 }
 
@@ -277,7 +259,7 @@ const deleteUser = (userId) => {
               <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
               </svg>
-              <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Users</span>
+              <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Categories</span>
             </div>
           </li>
         </ol>
@@ -286,13 +268,13 @@ const deleteUser = (userId) => {
       <!-- Page Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">All Users</h1>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">All Categories</h1>
         </div>
         <button @click="openAddModal" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
           <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
           </svg>
-          Yeni Kullanıcı Ekle
+          Yeni Kategori Ekle
         </button>
       </div>
 
@@ -313,37 +295,19 @@ const deleteUser = (userId) => {
                 id="search"
                 v-model="searchQuery"
                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Search by email, product ID, or folder ID..."
+                placeholder="Search by category name..."
               />
             </div>
-          </div>
-
-          <!-- Product Filter -->
-          <div>
-            <label for="product" class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Product ID</label>
-            <select
-              id="product"
-              v-model="productFilter"
-              class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            >
-              <option value="">All Products</option>
-              <option value="PROD-001">PROD-001</option>
-              <option value="PROD-002">PROD-002</option>
-              <option value="PROD-003">PROD-003</option>
-              <option value="PROD-004">PROD-004</option>
-              <option value="PROD-005">PROD-005</option>
-              <option value="PROD-006">PROD-006</option>
-            </select>
           </div>
         </div>
       </div>
 
       <!-- Bulk Actions -->
-      <div v-if="selectedUsers.length > 0" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+      <div v-if="selectedCategories.length > 0" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <span class="text-sm font-medium text-blue-800 dark:text-blue-200">
-              {{ selectedUsers.length }} user(s) selected
+              {{ selectedCategories.length }} kategori seçildi
             </span>
           </div>
           <div class="flex space-x-2">
@@ -357,11 +321,19 @@ const deleteUser = (userId) => {
               </svg>
               Delete
             </button>
+            <button
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              Export
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Users Table -->
+      <!-- Categories Table -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -372,7 +344,7 @@ const deleteUser = (userId) => {
                   <input
                     type="checkbox"
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    :checked="selectedUsers.length === filteredUsers.length && filteredUsers.length > 0"
+                    :checked="selectedCategories.length === filteredCategories.length && filteredCategories.length > 0"
                     @change="toggleSelectAll"
                   />
                 </div>
@@ -385,69 +357,45 @@ const deleteUser = (userId) => {
                   </svg>
                 </div>
               </th>
-              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('email')">
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('name')">
                 <div class="flex items-center">
-                  Email
-                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('productid')">
-                <div class="flex items-center">
-                  Product ID
-                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('driveappfolderid')">
-                <div class="flex items-center">
-                  Drive App Folder ID
+                  Kategori Adı
                   <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
                   </svg>
                 </div>
               </th>
               <th scope="col" class="px-6 py-3">
-                Actions
+                İşlemler
               </th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="user in paginatedUsers" :key="user.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="category in paginatedCategories" :key="category.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="w-4 p-4">
                 <div class="flex items-center">
                   <input
                     type="checkbox"
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    :checked="selectedUsers.includes(user.id)"
-                    @change="toggleUserSelection(user.id)"
+                    :checked="selectedCategories.includes(category.id)"
+                    @change="toggleCategorySelection(category.id)"
                   />
                 </div>
               </td>
               <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                {{ user.id }}
+                {{ category.id }}
               </td>
               <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                {{ user.email }}
-              </td>
-              <td class="px-6 py-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                  {{ user.productid }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-mono">
-                {{ user.driveappfolderid }}
+                {{ category.name }}
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center space-x-2">
-                  <button @click="openEditModal(user)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Düzenle">
+                  <button @click="openEditModal(category)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Düzenle">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
                     </svg>
                   </button>
-                  <button @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Sil">
+                  <button @click="deleteCategory(category.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Sil">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
@@ -463,7 +411,7 @@ const deleteUser = (userId) => {
         <!-- Pagination -->
         <div class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
           <div class="flex items-center text-sm text-gray-700 dark:text-gray-400">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} results
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredCategories.length) }} of {{ filteredCategories.length }} results
           </div>
           <div class="flex items-center space-x-2">
             <button
@@ -491,14 +439,14 @@ const deleteUser = (userId) => {
       </div>
     </main>
 
-    <!-- Add User Modal -->
+    <!-- Add Category Modal -->
     <div v-if="showAddModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeAddModal">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" @click.stop>
         <div class="mt-3">
           <!-- Modal Header -->
           <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              Yeni Kullanıcı Ekle
+              Yeni Kategori Ekle
             </h3>
             <button @click="closeAddModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -509,62 +457,17 @@ const deleteUser = (userId) => {
 
           <!-- Modal Body -->
           <div class="mt-4 space-y-4">
-            <!-- Email Field -->
+            <!-- Category Name Field -->
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                id="email"
-                v-model="newUser.email"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="kullanici@example.com"
-                required
-              />
-            </div>
-
-            <!-- Password Field -->
-            <div>
-              <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Parola *
-              </label>
-              <input
-                type="password"
-                id="password"
-                v-model="newUser.password"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Güvenli bir parola girin"
-                required
-              />
-            </div>
-
-            <!-- Product ID Field -->
-            <div>
-              <label for="productid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Product ID *
+              <label for="categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Kategori Adı *
               </label>
               <input
                 type="text"
-                id="productid"
-                v-model="newUser.productid"
+                id="categoryName"
+                v-model="newCategory.name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="PROD-001"
-                required
-              />
-            </div>
-
-            <!-- Drive App Folder ID Field -->
-            <div>
-              <label for="driveappfolderid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Drive App Folder ID *
-              </label>
-              <input
-                type="text"
-                id="driveappfolderid"
-                v-model="newUser.driveappfolderid"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="folder-abc123"
+                placeholder="Kategori adını girin"
                 required
               />
             </div>
@@ -579,7 +482,7 @@ const deleteUser = (userId) => {
               İptal
             </button>
             <button
-              @click="addNewUser"
+              @click="addNewCategory"
               :disabled="isSubmitting"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -591,14 +494,14 @@ const deleteUser = (userId) => {
       </div>
     </div>
 
-    <!-- Edit User Modal -->
+    <!-- Edit Category Modal -->
     <div v-if="showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeEditModal">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" @click.stop>
         <div class="mt-3">
           <!-- Modal Header -->
           <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              Kullanıcı Düzenle
+              Kategori Düzenle
             </h3>
             <button @click="closeEditModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -609,62 +512,17 @@ const deleteUser = (userId) => {
 
           <!-- Modal Body -->
           <div class="mt-4 space-y-4">
-            <!-- Email Field -->
+            <!-- Category Name Field -->
             <div>
-              <label for="edit-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                id="edit-email"
-                v-model="editUser.email"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="kullanici@example.com"
-                required
-              />
-            </div>
-
-            <!-- Password Field -->
-            <div>
-              <label for="edit-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Parola *
-              </label>
-              <input
-                type="password"
-                id="edit-password"
-                v-model="editUser.password"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Güvenli bir parola girin"
-                required
-              />
-            </div>
-
-            <!-- Product ID Field -->
-            <div>
-              <label for="edit-productid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Product ID *
+              <label for="edit-categoryName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Kategori Adı *
               </label>
               <input
                 type="text"
-                id="edit-productid"
-                v-model="editUser.productid"
+                id="edit-categoryName"
+                v-model="editCategory.name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="PROD-001"
-                required
-              />
-            </div>
-
-            <!-- Drive App Folder ID Field -->
-            <div>
-              <label for="edit-driveappfolderid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Drive App Folder ID *
-              </label>
-              <input
-                type="text"
-                id="edit-driveappfolderid"
-                v-model="editUser.driveappfolderid"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="folder-abc123"
+                placeholder="Kategori adını girin"
                 required
               />
             </div>
@@ -679,7 +537,7 @@ const deleteUser = (userId) => {
               İptal
             </button>
             <button
-              @click="updateUser"
+              @click="updateCategory"
               :disabled="isSubmitting"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -693,5 +551,269 @@ const deleteUser = (userId) => {
   </div>
 </template>
 <style scoped>
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-header {
+  margin-bottom: 40px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 24px 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+  background: linear-gradient(135deg, #d4af8c, #b8956a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.logout-icon {
+  font-size: 1.2rem;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 48px;
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.welcome-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 16px 0;
+}
+
+.welcome-subtitle {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.navigation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.nav-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #d4af8c, #b8956a);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-card:hover::before {
+  transform: scaleX(1);
+}
+
+.nav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:hover {
+  border-color: #d4af8c;
+}
+
+.user-card:hover {
+  border-color: #3b82f6;
+}
+
+.card-icon {
+  flex-shrink: 0;
+}
+
+.card-icon .icon {
+  font-size: 3rem;
+  display: block;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.card-description {
+  color: #4a5568;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.feature-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.card-arrow {
+  flex-shrink: 0;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  transition: all 0.3s ease;
+}
+
+.nav-card:hover .card-arrow {
+  color: #d4af8c;
+  transform: translateX(4px);
+}
+
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.stat-item {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #d4af8c, #b8956a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-info h4 {
+  margin: 0 0 4px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.stat-info p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .dashboard-title {
+    font-size: 2rem;
+  }
+
+  .navigation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .card-arrow {
+    display: none;
+  }
+
+  .welcome-section {
+    padding: 24px;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .quick-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* User Management Styles */
 </style>

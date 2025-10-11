@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "axios": "^1.12.2",
+    "flowbite": "^3.1.2",
     "vue": "^3.5.18",
     "vue-photo-collage": "^1.0.5",
     "vue-router": "^4.5.1",
@@ -24,12 +25,15 @@
     "@eslint/js": "^9.31.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.31.0",
     "eslint-plugin-vue": "~10.3.0",
     "globals": "^16.3.0",
+    "postcss": "^8.5.6",
     "prettier": "3.6.2",
     "sass": "^1.93.2",
     "sass-loader": "^16.0.5",
+    "tailwindcss": "^3.4.13",
     "vite": "^7.0.6",
     "vite-plugin-vue-devtools": "^8.0.0",
     "vite-plugin-vuetify": "^2.1.2"

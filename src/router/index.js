@@ -10,16 +10,16 @@ import { API_ENDPOINTS } from '../config/apiEndpoints.ts'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminUserControlPanel from '@/views/admin/AdminUserControlPanel.vue'
 import AdminProductControlPanel from '@/views/admin/AdminProductControlPanel.vue'
-import AdminDashboard from '@/views/admin/AdminDashboard.vue'
 import TripMemoriesPage from '@/views/TripMemoriesPage.vue'
+import AdminCategoriesControlPanel from '@/views/admin/AdminCategoriesControlPanel.vue'
 
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginPage, meta: { allowDirect: false } },
   { path: '/admin/login', name: 'AdminLogin', component: AdminLogin },
-  { path: '/admin/dashboard', name: 'AdminLogin', component: AdminDashboard },
-  { path: '/admin/user-control', name: 'AdminDashboard', component: AdminUserControlPanel },
-  { path: '/admin/product-control', name: 'AdminDashboard', component: AdminProductControlPanel },
+  { path: '/admin/users', name: 'AdminUsers', component: AdminUserControlPanel },
+  { path: '/admin/products', name: 'AdminProducts', component: AdminProductControlPanel },
+  { path: '/admin/categories', name: 'AdminCategories', component: AdminCategoriesControlPanel },
   { path: '/upload/:id', name: 'UploadWeddingMemories', component: WeddingMemoriesPage },
   { path: '/trip/upload/:id', name: 'UploadTripMemories', component: TripMemoriesPage },
   { path: '/show/:id', name: 'ShowWeddingMemories', component: WeddingMemoriesPage },

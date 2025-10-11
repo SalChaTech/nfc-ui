@@ -1,858 +1,874 @@
-<template>
-  <div class="dashboard-container">
-    <!-- Header -->
-    <div class="dashboard-header">
-      <div class="header-left">
-        <button class="back-btn" @click="goToDashboard">
-          <span class="back-icon">←</span>
-          Ana Sayfa
-        </button>
-        <h1 class="dashboard-title">Ürün Yönetimi</h1>
-      </div>
-      <button class="add-user-btn" @click="openAddModal">
-        <span class="btn-icon">+</span>
-        Yeni Ürün Ekle
-      </button>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">📦</div>
-        <div class="stat-content">
-          <h3>Toplam Ürün</h3>
-          <p class="stat-number">{{ products.length }}</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📸</div>
-        <div class="stat-content">
-          <h3>Toplam Fotoğraf</h3>
-          <p class="stat-number">{{ totalPhotos }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Products Table -->
-    <div class="table-container">
-      <div class="table-header">
-        <h2>Ürün Listesi</h2>
-        <div class="search-box">
-          <input
-            type="text"
-            placeholder="Ürün ara..."
-            v-model="searchQuery"
-            class="search-input"
-          />
-        </div>
-      </div>
-
-      <div class="table-wrapper">
-        <table class="users-table">
-          <thead>
-          <tr>
-            <th>ID</th>
-            <th>Ürün Adı</th>
-            <th>Açıklama</th>
-            <th>Fiyat</th>
-            <th>Stok</th>
-            <th>Fotoğraf Sayısı</th>
-            <th>Oluşturma Tarihi</th>
-            <th>İşlemler</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="product in filteredProducts" :key="product.id">
-            <td>{{ product.id }}</td>
-            <td>{{ product.name }}</td>
-            <td class="description-cell">{{ product.description }}</td>
-            <td>{{ product.price }}₺</td>
-            <td>
-              <span class="stock-badge" :class="{ 'low-stock': product.stock <= 5, 'out-of-stock': product.stock === 0 }">
-                {{ product.stock }}
-              </span>
-            </td>
-            <td>
-              <span class="photo-count-badge">{{ product.photos.length }}/10</span>
-            </td>
-            <td>{{ formatDate(product.createdAt) }}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="edit-btn" @click="editProduct(product)">✏️</button>
-                <button class="delete-btn" @click="deleteProduct(product.id)">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <div v-if="showModal" class="modal-overlay" @click="closeModal">
-      <div class="modal-content large-modal" @click.stop>
-        <div class="modal-header">
-          <h3>{{ isEditing ? 'Ürün Düzenle' : 'Yeni Ürün Ekle' }}</h3>
-          <button class="close-btn" @click="closeModal">×</button>
-        </div>
-
-        <form class="modal-form" @submit.prevent="saveProduct">
-          <div class="form-group">
-            <label>Ürün Adı</label>
-            <input
-              type="text"
-              v-model="formData.name"
-              required
-              class="form-input"
-              placeholder="Ürün adını girin"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Açıklama</label>
-            <textarea
-              v-model="formData.description"
-              required
-              class="form-input"
-              rows="3"
-              placeholder="Ürün açıklamasını girin"
-            ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Fiyat (₺)</label>
-            <input
-              type="number"
-              v-model="formData.price"
-              required
-              class="form-input"
-              placeholder="0"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Stok Adedi</label>
-            <input
-              type="number"
-              v-model="formData.stock"
-              required
-              class="form-input"
-              placeholder="0"
-              min="0"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Ürün Fotoğrafları (Maksimum 10 adet)</label>
-            <div class="photo-upload-section">
-              <div class="photo-upload-area" @click="triggerFileInput" :class="{ 'disabled': formData.photos.length >= 10 }">
-                <input
-                  ref="fileInput"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  @change="handleFileUpload"
-                  style="display: none"
-                />
-                <div class="upload-content">
-                  <span class="upload-icon">📷</span>
-                  <p>Fotoğraf Seç ({{ formData.photos.length }}/10)</p>
-                </div>
-              </div>
-              
-              <div class="photo-preview-grid" v-if="formData.photos.length > 0">
-                <div v-for="(photo, index) in formData.photos" :key="index" class="photo-preview-item">
-                  <img :src="photo.url" :alt="`Photo ${index + 1}`" class="photo-preview" />
-                  <button type="button" class="remove-photo-btn" @click="removePhoto(index)">×</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="closeModal">İptal</button>
-            <button type="submit" class="save-btn">
-              {{ isEditing ? 'Güncelle' : 'Kaydet' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import Sidebar from '@/components/admin-components/Sidebar.vue'
 
 const router = useRouter()
 
-// Reactive data
+// Product management state
 const products = ref([
-  { 
-    id: 1, 
-    name: 'Düğün Fotoğraf Paketi', 
-    description: 'Profesyonel düğün fotoğrafçılığı hizmeti', 
-    price: 2500, 
-    stock: 15,
-    photos: [
-      { url: '/src/assets/g1.jpg', name: 'photo1.jpg' },
-      { url: '/src/assets/g2.jpg', name: 'photo2.jpg' }
-    ], 
-    createdAt: '2024-01-15' 
-  },
-  { 
-    id: 2, 
-    name: 'Nişan Fotoğraf Paketi', 
-    description: 'Nişan töreni fotoğrafçılığı', 
-    price: 1500, 
-    stock: 8,
-    photos: [
-      { url: '/src/assets/g3.jpg', name: 'photo3.jpg' }
-    ], 
-    createdAt: '2024-01-20' 
-  },
-  { 
-    id: 3, 
-    name: 'Aile Fotoğraf Çekimi', 
-    description: 'Aile fotoğraf çekimi hizmeti', 
-    price: 800, 
-    stock: 0,
-    photos: [], 
-    createdAt: '2024-02-01' 
-  }
+  { id: 1, name: 'iPhone 15 Pro', price: 999.99, description: 'Latest iPhone with advanced camera system', stockquantity: 50, category: 'Electronics' },
+  { id: 2, name: 'MacBook Air M2', price: 1199.99, description: 'Lightweight laptop with M2 chip', stockquantity: 25, category: 'Electronics' },
+  { id: 3, name: 'Nike Air Max', price: 129.99, description: 'Comfortable running shoes', stockquantity: 100, category: 'Shoes' },
+  { id: 4, name: 'Samsung Galaxy S24', price: 899.99, description: 'Android smartphone with AI features', stockquantity: 75, category: 'Electronics' },
+  { id: 5, name: 'Adidas T-Shirt', price: 29.99, description: 'Comfortable cotton t-shirt', stockquantity: 200, category: 'Clothing' },
+  { id: 6, name: 'Sony WH-1000XM5', price: 399.99, description: 'Noise-canceling wireless headphones', stockquantity: 30, category: 'Electronics' }
 ])
 
 const searchQuery = ref('')
-const showModal = ref(false)
-const isEditing = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const formData = ref({
+const categoryFilter = ref('')
+const selectedProducts = ref([])
+const sortField = ref('id')
+const sortDirection = ref('asc')
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Modal state
+const showAddModal = ref(false)
+const showEditModal = ref(false)
+const newProduct = ref({
+  name: '',
+  price: '',
+  description: '',
+  stockquantity: '',
+  category: '',
+  images: []
+})
+const editProduct = ref({
   id: null,
   name: '',
+  price: '',
   description: '',
-  price: 0,
-  stock: 0,
-  photos: [] as Array<{ url: string; name: string; file?: File }>
+  stockquantity: '',
+  category: '',
+  images: []
 })
+const isSubmitting = ref(false)
 
-// Computed properties
-const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value
-  return products.value.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
-const totalPhotos = computed(() => {
-  return products.value.reduce((total, product) => total + product.photos.length, 0)
-})
-
-// Methods
-const openAddModal = () => {
-  isEditing.value = false
-  formData.value = { 
-    id: null, 
-    name: '', 
-    description: '', 
-    price: 0, 
-    stock: 0,
-    photos: [] 
-  }
-  showModal.value = true
-}
-
-const editProduct = (product: any) => {
-  isEditing.value = true
-  formData.value = { ...product }
-  showModal.value = true
-}
-
-const saveProduct = () => {
-  if (isEditing.value) {
-    const index = products.value.findIndex(product => product.id === formData.value.id)
-    if (index !== -1) {
-      products.value[index] = { ...formData.value }
-    }
-  } else {
-    const newProduct = {
-      ...formData.value,
-      id: Math.max(...products.value.map(p => p.id)) + 1,
-      createdAt: new Date().toISOString().split('T')[0]
-    }
-    products.value.push(newProduct)
-  }
-  closeModal()
-}
-
-const deleteProduct = (id: number) => {
-  if (confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
-    products.value = products.value.filter(product => product.id !== id)
-  }
-}
-
-const closeModal = () => {
-  showModal.value = false
-  formData.value = { 
-    id: null, 
-    name: '', 
-    description: '', 
-    price: 0, 
-    stock: 0,
-    photos: [] 
-  }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('tr-TR')
-}
-
-// Photo management methods
-const triggerFileInput = () => {
-  if (formData.value.photos.length < 10) {
-    fileInput.value?.click()
-  }
-}
-
-const handleFileUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const files = target.files
-  
-  if (files) {
-    const remainingSlots = 10 - formData.value.photos.length
-    const filesToAdd = Array.from(files).slice(0, remainingSlots)
-    
-    filesToAdd.forEach(file => {
+// File upload handlers
+const handleImageUpload = (event, isEdit = false) => {
+  const files = event.target.files
+  if (files && files.length > 0) {
+    Array.from(files).forEach((file) => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = (e) => {
-          const url = e.target?.result as string
-          formData.value.photos.push({
-            url,
+          const imageData = {
+            id: `local-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
             name: file.name,
-            file
-          })
+            url: e.target.result,
+            file: file
+          }
+          
+          if (isEdit) {
+            editProduct.value.images.push(imageData)
+          } else {
+            newProduct.value.images.push(imageData)
+          }
         }
         reader.readAsDataURL(file)
       }
     })
   }
-  
-  // Reset file input
-  if (target) {
-    target.value = ''
+}
+
+// Remove image function
+const removeImage = (imageId, isEdit = false) => {
+  if (isEdit) {
+    editProduct.value.images = editProduct.value.images.filter(img => img.id !== imageId)
+  } else {
+    newProduct.value.images = newProduct.value.images.filter(img => img.id !== imageId)
   }
 }
 
-const removePhoto = (index: number) => {
-  formData.value.photos.splice(index, 1)
+// Computed properties
+const filteredProducts = computed(() => {
+  let filtered = products.value
+
+  // Search filter
+  if (searchQuery.value) {
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  }
+
+  // Category filter
+  if (categoryFilter.value) {
+    filtered = filtered.filter(product => product.category === categoryFilter.value)
+  }
+
+  // Sort
+  filtered.sort((a, b) => {
+    let aVal = a[sortField.value]
+    let bVal = b[sortField.value]
+
+    if (sortDirection.value === 'asc') {
+      return aVal > bVal ? 1 : -1
+    } else {
+      return aVal < bVal ? 1 : -1
+    }
+  })
+
+  return filtered
+})
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredProducts.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / itemsPerPage.value)
+})
+
+const logout = () => {
+  if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+    // Clear any stored auth data
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('userToken')
+    router.push('/login')
+  }
 }
 
-// Navigation method
-const goToDashboard = () => {
-  router.push('/admin')
+// Product management functions
+const sortBy = (field: string) => {
+  if (sortField.value === field) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortField.value = field
+    sortDirection.value = 'asc'
+  }
 }
+
+const toggleSelectAll = () => {
+  if (selectedProducts.value.length === filteredProducts.value.length) {
+    selectedProducts.value = []
+  } else {
+    selectedProducts.value = filteredProducts.value.map(product => product.id)
+  }
+}
+
+const toggleProductSelection = (productId: number) => {
+  const index = selectedProducts.value.indexOf(productId)
+  if (index > -1) {
+    selectedProducts.value.splice(index, 1)
+  } else {
+    selectedProducts.value.push(productId)
+  }
+}
+
+const bulkDelete = () => {
+  if (confirm(`${selectedProducts.value.length} ürünü silmek istediğinizden emin misiniz?`)) {
+    products.value = products.value.filter(product => !selectedProducts.value.includes(product.id))
+    selectedProducts.value = []
+  }
+}
+
+// Modal functions
+const openAddModal = () => {
+  showAddModal.value = true
+  newProduct.value = {
+    name: '',
+    price: '',
+    description: '',
+    stockquantity: '',
+    category: '',
+    images: []
+  }
+}
+
+const closeAddModal = () => {
+  showAddModal.value = false
+  newProduct.value = {
+    name: '',
+    price: '',
+    description: '',
+    stockquantity: '',
+    category: '',
+    images: []
+  }
+}
+
+const addNewProduct = async () => {
+  if (!newProduct.value.name || !newProduct.value.price || !newProduct.value.description || !newProduct.value.stockquantity || !newProduct.value.category || newProduct.value.images.length === 0) {
+    alert('Lütfen tüm alanları doldurun.')
+    return
+  }
+
+  isSubmitting.value = true
+  
+  try {
+    // Generate new ID
+    const newId = Math.max(...products.value.map(p => p.id)) + 1
+    
+    // Add new product (images will be stored as array for now)
+    products.value.push({
+      id: newId,
+      name: newProduct.value.name,
+      price: parseFloat(newProduct.value.price),
+      description: newProduct.value.description,
+      stockquantity: parseInt(newProduct.value.stockquantity),
+      category: newProduct.value.category,
+      images: newProduct.value.images
+    })
+    
+    // Close modal and reset form
+    closeAddModal()
+    
+    // Show success message
+    alert('Ürün başarıyla eklendi!')
+  } catch (error) {
+    alert('Ürün eklenirken bir hata oluştu.')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Edit functions
+const openEditModal = (product) => {
+  showEditModal.value = true
+  editProduct.value = {
+    id: product.id,
+    name: product.name,
+    price: product.price.toString(),
+    description: product.description,
+    stockquantity: product.stockquantity.toString(),
+    category: product.category,
+    images: product.images || []
+  }
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editProduct.value = {
+    id: null,
+    name: '',
+    price: '',
+    description: '',
+    stockquantity: '',
+    category: '',
+    images: []
+  }
+}
+
+const updateProduct = async () => {
+  if (!editProduct.value.name || !editProduct.value.price || !editProduct.value.description || !editProduct.value.stockquantity || !editProduct.value.category || editProduct.value.images.length === 0) {
+    alert('Lütfen tüm alanları doldurun.')
+    return
+  }
+
+  isSubmitting.value = true
+  
+  try {
+    // Find and update product
+    const productIndex = products.value.findIndex(p => p.id === editProduct.value.id)
+    if (productIndex !== -1) {
+      products.value[productIndex] = {
+        id: editProduct.value.id,
+        name: editProduct.value.name,
+        price: parseFloat(editProduct.value.price),
+        description: editProduct.value.description,
+        stockquantity: parseInt(editProduct.value.stockquantity),
+        category: editProduct.value.category,
+        images: editProduct.value.images
+      }
+    }
+    
+    // Close modal and reset form
+    closeEditModal()
+    
+    // Show success message
+    alert('Ürün başarıyla güncellendi!')
+  } catch (error) {
+    alert('Ürün güncellenirken bir hata oluştu.')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Delete function
+const deleteProduct = (productId) => {
+  const product = products.value.find(p => p.id === productId)
+  if (product && confirm(`${product.name} ürününü silmek istediğinizden emin misiniz?`)) {
+    products.value = products.value.filter(p => p.id !== productId)
+    alert('Ürün başarıyla silindi!')
+  }
+}
+
 </script>
 
+<template>
+  <div class="antialiased bg-gray-50 dark:bg-gray-900">
+    <Sidebar/>
+
+    <main class="p-4 md:ml-64 h-auto pt-20">
+      <!-- Breadcrumb -->
+      <nav class="flex mb-4" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+          <li class="inline-flex items-center">
+            <a href="#" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+              </svg>
+              Home
+            </a>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <a href="#" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">Platform</a>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Products</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Page Header -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">All Products</h1>
+        </div>
+        <button @click="openAddModal" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+          </svg>
+          Yeni Ürün Ekle
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Search -->
+          <div class="lg:col-span-2">
+            <label for="search" class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Search</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <input
+                type="text"
+                id="search"
+                v-model="searchQuery"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Search by name, description, or category..."
+              />
+            </div>
+          </div>
+
+          <!-- Category Filter -->
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Category</label>
+            <select
+              id="category"
+              v-model="categoryFilter"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            >
+              <option value="">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Shoes">Shoes</option>
+              <option value="Clothing">Clothing</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk Actions -->
+      <div v-if="selectedProducts.length > 0" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <span class="text-sm font-medium text-blue-800 dark:text-blue-200">
+              {{ selectedProducts.length }} product(s) selected
+            </span>
+          </div>
+          <div class="flex space-x-2">
+            <button
+              @click="bulkDelete"
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+            >
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="p-4">
+                <div class="flex items-center">
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    :checked="selectedProducts.length === filteredProducts.length && filteredProducts.length > 0"
+                    @change="toggleSelectAll"
+                  />
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('id')">
+                <div class="flex items-center">
+                  ID
+                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('name')">
+                <div class="flex items-center">
+                  Name
+                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('price')">
+                <div class="flex items-center">
+                  Price
+                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('stockquantity')">
+                <div class="flex items-center">
+                  Stock
+                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3 cursor-pointer" @click="sortBy('category')">
+                <div class="flex items-center">
+                  Category
+                  <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Actions
+              </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="product in paginatedProducts" :key="product.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="w-4 p-4">
+                <div class="flex items-center">
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    :checked="selectedProducts.includes(product.id)"
+                    @change="toggleProductSelection(product.id)"
+                  />
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                {{ product.id }}
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ product.description }}</div>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                ${{ product.price.toFixed(2) }}
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="product.stockquantity > 50 ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : product.stockquantity > 10 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'">
+                  {{ product.stockquantity }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                  {{ product.category }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center space-x-2">
+                  <button @click="openEditModal(product)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Düzenle">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                    </svg>
+                  </button>
+                  <button @click="deleteProduct(product.id)" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Sil">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center text-sm text-gray-700 dark:text-gray-400">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredProducts.length) }} of {{ filteredProducts.length }} results
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="currentPage = Math.max(1, currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              Previous
+            </button>
+            <button
+              @click="currentPage = Math.min(totalPages, currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div v-if="showAddModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeAddModal">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" @click.stop>
+        <div class="mt-3">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              Yeni Ürün Ekle
+            </h3>
+            <button @click="closeAddModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="mt-4 space-y-4">
+            <!-- Name Field -->
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Ürün Adı *
+              </label>
+              <input
+                type="text"
+                id="name"
+                v-model="newProduct.name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Ürün adını girin"
+                required
+              />
+            </div>
+
+            <!-- Price Field -->
+            <div>
+              <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fiyat *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                id="price"
+                v-model="newProduct.price"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <!-- Description Field -->
+            <div>
+              <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Açıklama *
+              </label>
+              <textarea
+                id="description"
+                v-model="newProduct.description"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Ürün açıklaması"
+                required
+              ></textarea>
+            </div>
+
+            <!-- Stock Quantity Field -->
+            <div>
+              <label for="stockquantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Stok Miktarı *
+              </label>
+              <input
+                type="number"
+                id="stockquantity"
+                v-model="newProduct.stockquantity"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="0"
+                required
+              />
+            </div>
+
+            <!-- Category Field -->
+            <div>
+              <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Kategori *
+              </label>
+              <select
+                id="category"
+                v-model="newProduct.category"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              >
+                <option value="">Kategori seçin</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Clothing">Clothing</option>
+              </select>
+            </div>
+
+            <!-- Images Field -->
+            <div>
+              <label for="images" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Ürün Resimleri *
+              </label>
+              <input
+                type="file"
+                id="images"
+                accept="image/*"
+                multiple
+                @change="handleImageUpload($event, false)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Birden fazla resim seçebilirsiniz</p>
+              
+              <!-- Image Gallery -->
+              <div v-if="newProduct.images.length > 0" class="mt-4">
+                <div class="grid grid-cols-3 gap-2">
+                  <div v-for="(image, index) in newProduct.images" :key="image.id" class="relative group">
+                    <img 
+                      :src="image.url" 
+                      :alt="image.name" 
+                      class="w-full h-20 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button 
+                      @click="removeImage(image.id, false)"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      title="Resmi kaldır"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              @click="closeAddModal"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+            >
+              İptal
+            </button>
+            <button
+              @click="addNewProduct"
+              :disabled="isSubmitting"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span v-if="isSubmitting">Ekleniyor...</span>
+              <span v-else>Ekle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div v-if="showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeEditModal">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" @click.stop>
+        <div class="mt-3">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              Ürün Düzenle
+            </h3>
+            <button @click="closeEditModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="mt-4 space-y-4">
+            <!-- Name Field -->
+            <div>
+              <label for="edit-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Ürün Adı *
+              </label>
+              <input
+                type="text"
+                id="edit-name"
+                v-model="editProduct.name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Ürün adını girin"
+                required
+              />
+            </div>
+
+            <!-- Price Field -->
+            <div>
+              <label for="edit-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fiyat *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                id="edit-price"
+                v-model="editProduct.price"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <!-- Description Field -->
+            <div>
+              <label for="edit-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Açıklama *
+              </label>
+              <textarea
+                id="edit-description"
+                v-model="editProduct.description"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Ürün açıklaması"
+                required
+              ></textarea>
+            </div>
+
+            <!-- Stock Quantity Field -->
+            <div>
+              <label for="edit-stockquantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Stok Miktarı *
+              </label>
+              <input
+                type="number"
+                id="edit-stockquantity"
+                v-model="editProduct.stockquantity"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="0"
+                required
+              />
+            </div>
+
+            <!-- Category Field -->
+            <div>
+              <label for="edit-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Kategori *
+              </label>
+              <select
+                id="edit-category"
+                v-model="editProduct.category"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              >
+                <option value="">Kategori seçin</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Clothing">Clothing</option>
+              </select>
+            </div>
+
+            <!-- Images Field -->
+            <div>
+              <label for="edit-images" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Ürün Resimleri *
+              </label>
+              <input
+                type="file"
+                id="edit-images"
+                accept="image/*"
+                multiple
+                @change="handleImageUpload($event, true)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Birden fazla resim seçebilirsiniz</p>
+              
+              <!-- Image Gallery -->
+              <div v-if="editProduct.images.length > 0" class="mt-4">
+                <div class="grid grid-cols-3 gap-2">
+                  <div v-for="(image, index) in editProduct.images" :key="image.id" class="relative group">
+                    <img 
+                      :src="image.url" 
+                      :alt="image.name" 
+                      class="w-full h-20 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button 
+                      @click="removeImage(image.id, true)"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      title="Resmi kaldır"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              @click="closeEditModal"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500"
+            >
+              İptal
+            </button>
+            <button
+              @click="updateProduct"
+              :disabled="isSubmitting"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span v-if="isSubmitting">Güncelleniyor...</span>
+              <span v-else>Güncelle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 <style scoped>
-.dashboard-container {
-  min-height: 100vh;
-  background: #f8fafc;
-  padding: 24px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.back-btn {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.back-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.3);
-  background: linear-gradient(135deg, #4b5563, #374151);
-}
-
-.back-icon {
-  font-size: 1.1rem;
-}
-
-.dashboard-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin: 0;
-}
-
-.add-user-btn {
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.add-user-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(74, 222, 128, 0.3);
-}
-
-.btn-icon {
-  font-size: 1.2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border: 1px solid #e2e8f0;
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #d4af8c, #b8956a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.stat-content h3 {
-  margin: 0 0 8px 0;
-  color: #4a5568;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.stat-number {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-.table-container {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.table-header h2 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.5rem;
-}
-
-.search-input {
-  padding: 10px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  width: 250px;
-  transition: border-color 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #d4af8c;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-}
-
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.users-table th {
-  background: #f8fafc;
-  padding: 16px;
-  text-align: left;
-  font-weight: 600;
-  color: #4a5568;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.users-table td {
-  padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #2d3748;
-}
-
-.product-id-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: #f0f9ff;
-  color: #2563eb;
-}
-
-.drive-link-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.edit-btn, .delete-btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.edit-btn {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.edit-btn:hover {
-  background: #fde68a;
-}
-
-.delete-btn {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.delete-btn:hover {
-  background: #fecaca;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.large-modal {
-  max-width: 800px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.3rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 4px;
-}
-
-.modal-form {
-  padding: 24px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.form-input, .form-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.form-input:focus, .form-select:focus {
-  outline: none;
-  border-color: #d4af8c;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-.cancel-btn, .save-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.cancel-btn {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.cancel-btn:hover {
-  background: #e2e8f0;
-}
-
-.save-btn {
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  color: white;
-}
-
-.save-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
-}
-
-@media (max-width: 768px) {
-  .dashboard-container {
-    padding: 16px;
-  }
-
-  .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-
-  .table-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Photo upload styles */
-.photo-upload-section {
-  margin-top: 8px;
-}
-
-.photo-upload-area {
-  border: 2px dashed #d4af8c;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #fefefe;
-}
-
-.photo-upload-area:hover:not(.disabled) {
-  border-color: #b8956a;
-  background: #f8f9fa;
-}
-
-.photo-upload-area.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f5f5f5;
-}
-
-.upload-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.upload-icon {
-  font-size: 2rem;
-  color: #d4af8c;
-}
-
-.upload-content p {
-  margin: 0;
-  color: #4a5568;
-  font-weight: 500;
-}
-
-.photo-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.photo-preview-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.photo-preview {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  display: block;
-}
-
-.remove-photo-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(220, 38, 38, 0.9);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-.remove-photo-btn:hover {
-  background: rgba(220, 38, 38, 1);
-  transform: scale(1.1);
-}
-
-.photo-count-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: #f0f9ff;
-  color: #2563eb;
-}
-
-.stock-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
-.stock-badge.low-stock {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.stock-badge.out-of-stock {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.description-cell {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-textarea.form-input {
-  resize: vertical;
-  min-height: 80px;
-}
+/* Product Management Styles */
 </style>
