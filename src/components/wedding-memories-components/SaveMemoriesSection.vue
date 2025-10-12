@@ -1,10 +1,31 @@
+<template>
+  <div>
+    <button @click="uploadChanges" class="upload-button">
+      <div class="button-content">
+        <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="button-text">Yayınla</span>
+      </div>
+    </button>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { API_ENDPOINTS } from '../../config/apiEndpoints'
 
 import { useRoute } from 'vue-router'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const route = useRoute()
 
 interface Video {
@@ -41,8 +62,11 @@ const emit = defineEmits<{
 const uploadedAtLeastOneFile = ref(null)
 const applicationFolderId = ref(null)
 const loading = ref(false)
-const showSuccessAlert = ref(false)
-const showErrorAlert = ref(false)
+
+const hasNames = computed(() => {
+  const names = props.memoriesData?.hero?.names;
+  return names?.first?.trim() || names?.second?.trim();
+});
 
 
 const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
@@ -67,7 +91,8 @@ const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
 
   // 4. Upload
   const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    withCredentials: true
   })
 
   const response = await api.post(API_ENDPOINTS.DRIVE.UPLOAD_FILE, formData, {
@@ -75,7 +100,6 @@ const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 
-  console.log('Başarıyla yüklendi:', fileName, response.data)
   uploadedAtLeastOneFile.value = true
   return response.data
 }
@@ -86,11 +110,11 @@ const uploadChanges = async () => {
     emit('update:loading', true)
 
 
-    if (props.memoriesData.hero.names) {
+    if (hasNames.value) {
       const api = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL
+        baseURL: import.meta.env.VITE_API_BASE_URL,
+        withCredentials: true
       })
-      const userToken = localStorage.getItem('userToken')
 
       const firstName = props.memoriesData.hero.names.first
       const secondName = props.memoriesData.hero.names.second
@@ -100,19 +124,14 @@ const uploadChanges = async () => {
         date: null       // değişecekse gönder
       }
 
-      await api.put(API_ENDPOINTS.WEDDING_MEMORIES.UPDATE, requestBody, {
-        headers: {
-          Authorization: userToken
-        }
-      })
+      const response = await api.put(API_ENDPOINTS.WEDDING_MEMORY_DATA.UPDATE(route.params.id), requestBody)
     }
 
-    if (props.memoriesData.hero.date) {
-      console.log('date:', props.memoriesData.hero.date)
+    if (props.memoriesData?.hero?.date?.trim()) {
       const api = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL
+        baseURL: import.meta.env.VITE_API_BASE_URL,
+        withCredentials: true
       })
-      const userToken = localStorage.getItem('userToken')
 
       const date = props.memoriesData.hero.date
       const requestBody = {
@@ -121,11 +140,7 @@ const uploadChanges = async () => {
         date: date       // değişecekse gönder
       }
 
-      await api.put(API_ENDPOINTS.WEDDING_MEMORIES.UPDATE, requestBody, {
-        headers: {
-          Authorization: userToken
-        }
-      })
+      await api.put(API_ENDPOINTS.WEDDING_MEMORY_DATA.UPDATE(route.params.id), requestBody)
     }
 
     if (props.memoriesData.hero.image) {
@@ -155,7 +170,6 @@ const uploadChanges = async () => {
       }
     }
 
-    console.log('Tüm dosyalar yüklendi!')
 
     if (props.memoriesData.deletedCommonGalleryPhotos != undefined) {
       for (const photo of props.memoriesData.deletedCommonGalleryPhotos) {
@@ -167,106 +181,37 @@ const uploadChanges = async () => {
         const response = await api.delete(API_ENDPOINTS.DRIVE.DELETE_FILE(file.id), {
           withCredentials: true
         })
-        console.log('Başarıyla silindi:', response.data)
       }
     }
 
     if (uploadedAtLeastOneFile.value) {
       const api = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL
-      })
-      const response = await api.get(API_ENDPOINTS.GOOGLE_AUTH.ME, {
+        baseURL: import.meta.env.VITE_API_BASE_URL,
         withCredentials: true
       })
 
-      const userEmail = response.data.email
-      const newApplicationFolderId = applicationFolderId.value
-
-      const token = localStorage.getItem('userToken') // token'ı localStorage'dan al
-
+      const requestBody = {
+        folderId: applicationFolderId.value
+      }
 
       await api.put(
-        API_ENDPOINTS.USERS.UPDATE_EMAIL_AND_APP_FOLDER_ID,
-        {
-          email: userEmail,
-          driveApplicationFolderId: newApplicationFolderId
-        },
-        {
-          headers: {
-            Authorization: token
-          }
-        }
-      )
+        API_ENDPOINTS.USER_PRODUCT.UPDATE_FOLDER_ID(route.params.id), requestBody)
 
-      console.log('User updated!')
     }
 
+    toast.info('Yükleme işlemi başarılı!')
 
   } catch (error) {
+    toast.error('Yükleme işlemi başarısız!\n'+error.response.data.message)
     console.error('Yükleme hatası:', error)
 
-    // Hata durumunda error alert göster
-    showErrorAlert.value = true
-
-    // 5 saniye sonra alert'i kapat
-    setTimeout(() => {
-      showErrorAlert.value = false
-    }, 5000)
   } finally {
     loading.value = false
     emit('update:loading', false)
-
-    // Başarılı yükleme sonrası alert göster (sadece hata yoksa)
-    if (!showErrorAlert.value) {
-      showSuccessAlert.value = true
-
-      // 5 saniye sonra alert'i kapat
-      setTimeout(() => {
-        showSuccessAlert.value = false
-      }, 5000)
-    }
   }
 }
 
 </script>
-
-<template>
-  <div>
-    <button @click="uploadChanges" class="upload-button">
-      <div class="button-content">
-        <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-             xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" />
-          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        <span class="button-text">Yayınla</span>
-      </div>
-    </button>
-    <div v-if="showSuccessAlert" class="alert-container">
-      <v-alert
-        type="success"
-        variant="outlined"
-        transition="fade"
-      >
-        Fotoğraflar başarıyla yayınlandı!
-      </v-alert>
-    </div>
-
-    <div v-if="showErrorAlert" class="alert-container">
-      <v-alert
-        type="error"
-        variant="outlined"
-        transition="fade"
-      >
-        Yükleme sırasında bir hata oluştu. Lütfen tekrar deneyin.
-      </v-alert>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .upload-button {

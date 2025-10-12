@@ -1,3 +1,79 @@
+<template>
+
+
+  <div class="common-gallery">
+
+    <div class="gallery-header">
+      <h2>Galeri</h2>
+    </div>
+
+    <div class="gallery-grid">
+      <!-- Mevcut fotoğraflar -->
+      <div v-for="(photo, index) in allPhotos" :key="index" class="gallery-item"
+           @click="itemClickHandler(photo, index)">
+        <img :src="photo.url" :alt="`Fotoğraf ${index + 1}`" />
+      </div>
+
+      <!-- Resim ekle butonu -->
+      <div class="add-photo-item" @click="triggerImageUpload" v-if="props.editable">
+        <div class="add-icon">+</div>
+      </div>
+    </div>
+
+    <!-- Gizli dosya input -->
+    <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*" multiple
+           style="display: none;" v-if="props.editable" />
+
+    <!-- Fotoğraf modal -->
+    <div v-if="showModal" class="photo-modal" @click="closeModal">
+      <!-- Three dots menu button -->
+      <button class="three-dots-btn"
+              @click="toggleMenu"
+              v-if="props.editable"
+              title="Seçenekler">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="1" fill="currentColor" />
+          <circle cx="12" cy="5" r="1" fill="currentColor" />
+          <circle cx="12" cy="19" r="1" fill="currentColor" />
+        </svg>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div v-if="showMenu"
+           class="dropdown-menu"
+           :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
+           @click.stop>
+        <button class="delete-btn" @click="deleteCurrentPhoto">
+          Albümden kaldır
+        </button>
+      </div>
+
+      <!-- Gallery container with all photos -->
+      <div class="gallery-container"
+           ref="galleryContainer"
+           @scroll="handleGalleryScroll">
+        <div v-for="(photo, index) in allPhotos"
+             :key="index"
+             class="gallery-photo"
+             @click="closeModal">
+          <img :src="photo.url"
+               :alt="`Fotoğraf ${index + 1}`"
+               class="gallery-image"
+               @click.stop />
+        </div>
+      </div>
+
+      <!-- Fotoğraf sayacı -->
+      <div class="photo-counter" @click.stop>
+        {{ currentPhotoIndex + 1 }} / {{ allPhotos.length }}
+      </div>
+    </div>
+  </div>
+
+
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 
@@ -400,83 +476,6 @@ onUnmounted(() => {
   stopSlideshow()
 })
 </script>
-
-
-<template>
-
-
-  <div class="common-gallery">
-
-    <div class="gallery-header">
-      <h2>Galeri</h2>
-    </div>
-
-    <div class="gallery-grid">
-      <!-- Mevcut fotoğraflar -->
-      <div v-for="(photo, index) in allPhotos" :key="index" class="gallery-item"
-           @click="itemClickHandler(photo, index)">
-        <img :src="photo.url" :alt="`Fotoğraf ${index + 1}`" />
-      </div>
-
-      <!-- Resim ekle butonu -->
-      <div class="add-photo-item" @click="triggerImageUpload" v-if="props.editable">
-        <div class="add-icon">+</div>
-      </div>
-    </div>
-
-    <!-- Gizli dosya input -->
-    <input type="file" ref="imageUploadRef" @change="handleImageUpload" accept="image/*" multiple
-           style="display: none;" v-if="props.editable" />
-
-    <!-- Fotoğraf modal -->
-    <div v-if="showModal" class="photo-modal" @click="closeModal">
-      <!-- Three dots menu button -->
-      <button class="three-dots-btn"
-              @click="toggleMenu"
-              v-if="props.editable"
-              title="Seçenekler">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-             xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="1" fill="currentColor" />
-          <circle cx="12" cy="5" r="1" fill="currentColor" />
-          <circle cx="12" cy="19" r="1" fill="currentColor" />
-        </svg>
-      </button>
-
-      <!-- Dropdown menu -->
-      <div v-if="showMenu"
-           class="dropdown-menu"
-           :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
-           @click.stop>
-        <button class="delete-btn" @click="deleteCurrentPhoto">
-          Albümden kaldır
-        </button>
-      </div>
-
-      <!-- Gallery container with all photos -->
-      <div class="gallery-container"
-           ref="galleryContainer"
-           @scroll="handleGalleryScroll">
-        <div v-for="(photo, index) in allPhotos"
-             :key="index"
-             class="gallery-photo"
-             @click="closeModal">
-          <img :src="photo.url"
-               :alt="`Fotoğraf ${index + 1}`"
-               class="gallery-image"
-               @click.stop />
-        </div>
-      </div>
-
-      <!-- Fotoğraf sayacı -->
-      <div class="photo-counter" @click.stop>
-        {{ currentPhotoIndex + 1 }} / {{ allPhotos.length }}
-      </div>
-    </div>
-  </div>
-
-
-</template>
 
 <style scoped>
 /* Font import'ları artık theme.css'de */

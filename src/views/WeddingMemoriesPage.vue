@@ -1,15 +1,10 @@
 <template>
-  <div v-if="showPasswordCheck">
-    <CheckPassword :status="passwordOperationStatus"
-                   :msg="passwordOperationMsg" @passwordSubmit="onPasswordSubmit" />
-  </div>
-
-  <div v-else :class="['page-container', { blurred: saveLoading }]">
+  <div :class="['page-container', { blurred: saveLoading }]">
     <div v-if="!allFetched">
       <LoadingProcess />
     </div>
     <div v-else>
-      <HeroSection :editable="editable" @update:data="onHeroDataUpdate"
+      <HeroSection :editable="editable" @update:data="handleHeroDataUpdate"
                    :hero_image="heroImage" :female-name="femaleName"
                    :male-name="maleName"
                    :date="date">
@@ -35,7 +30,7 @@
                              :common_gallery_photos="commonGalleryPhotos"></CommonGalerySection>
       </div>
       <div v-if="editable" class="mt-16">
-        <SaveMemoriesSection @update:loading="onLoadingUpdate"
+        <SaveMemoriesSection @update:loading="handleLoadingUpdate"
                              :memoriesData="memoriesData"></SaveMemoriesSection>
       </div>
     </div>
@@ -56,25 +51,32 @@ import CommonGalerySection from '@/components/wedding-memories-components/Common
 import VideoSection from '@/components/wedding-memories-components/VideoSection.vue'
 import CounterSection from '@/components/wedding-memories-components/CounterSection.vue'
 import SaveMemoriesSection from '@/components/wedding-memories-components/SaveMemoriesSection.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { computed, onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
-import CheckPassword from '@/components/login-components/CheckPassword.vue'
 import { API_ENDPOINTS } from '../config/apiEndpoints'
+import { useToast } from 'vue-toastification'
 
-
+const toast = useToast()
 const route = useRoute()
+const router = useRouter()
 
-const passwordOperationStatus = ref<'success' | 'error' | null>(null)
-const passwordOperationMsg = ref<string | null>(null)
-
-const showPasswordCheck = ref(true)
 const saveLoading = ref(false)
-const userPassword = ref('')
-const token = ref('')
-
-
 const editable = ref(false)
+
+const metaFetched = ref(false)
+const driveFilesFetched = ref(false)
+const allFetched = computed(() =>
+  metaFetched.value && driveFilesFetched.value
+)
+
+const heroImage = ref<Photo | null>(null)
+const femaleName = ref('')
+const maleName = ref('')
+const date = ref('')
+const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
+const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
+const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 
 
 interface Photo {
@@ -101,46 +103,7 @@ const memoriesData = reactive({
   weddingVideo: null as Video | null
 })
 
-const onPasswordSubmit = async (password: string) => {
-  saveLoading.value = true
-  try {
-    const api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL
-    })
-    const response = await api.post(API_ENDPOINTS.USER_AUTH.GET_TOKEN, {
-      productId: route.params.id,
-      password: password
-    })
-
-    token.value = response.data.token
-    passwordOperationStatus.value = 'success'
-    passwordOperationMsg.value = 'Parola doğrulandı!'
-    setTimeout(() => {
-      passwordOperationStatus.value = null
-    }, 5000)
-
-    localStorage.setItem('userToken', token.value) // token kaydediliyor
-
-    userPassword.value = password
-    showPasswordCheck.value = false
-
-    await fetchDriveFiles()
-
-    saveLoading.value = false
-
-  } catch (error: any) {
-    const msg = error.response?.data || 'Bilinmeyen bir hata oluştu'
-    passwordOperationStatus.value = 'error'
-    passwordOperationMsg.value = msg
-
-    setTimeout(() => {
-      passwordOperationStatus.value = null
-    }, 5000)
-  } finally {
-    saveLoading.value = false
-  }
-}
-const onHeroDataUpdate = (data) => {
+function handleHeroDataUpdate(data) {
   if (data.names !== undefined) {
     memoriesData.hero.names = data.names
   }
@@ -152,16 +115,13 @@ const onHeroDataUpdate = (data) => {
   }
 }
 
-
 function handleSpecialGalleryPhotosUpdate(updatedPhotos: any[]) {
   memoriesData.specialGalleryPhotos = updatedPhotos
 }
 
-
 function handleWeddingVideoUpdate(updatedVideo: Video | null) {
   memoriesData.weddingVideo = updatedVideo
 }
-
 
 function handleAddedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
   memoriesData.addedCommonGalleryPhotos = updatedPhotos
@@ -171,24 +131,10 @@ function handleDeletedCommonGalleryPhotosUpdate(updatedPhotos: any[]) {
   memoriesData.deletedCommonGalleryPhotos = updatedPhotos
 }
 
-const onLoadingUpdate = (isLoading: boolean) => {
+function handleLoadingUpdate(isLoading: boolean) {
   saveLoading.value = isLoading
 }
 
-const metaFetched = ref(false)
-const driveFilesFetched = ref(false)
-
-const allFetched = computed(() =>
-  metaFetched.value && driveFilesFetched.value
-)
-
-const heroImage = ref<Photo | null>(null)
-const femaleName = ref('')
-const maleName = ref('')
-const date = ref('')
-const specialGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
-const video = ref<Video[]>([]) // Reactive ref olarak tanımlanmalı
-const commonGalleryPhotos = ref<Photo[]>([]) // Reactive ref olarak tanımlanmalı
 
 const fetchHeroMeta = async () => {
   try {
@@ -197,20 +143,15 @@ const fetchHeroMeta = async () => {
       baseURL: import.meta.env.VITE_API_BASE_URL
     })
 
-    const userToken = localStorage.getItem('userToken')
 
-
-    const response = await api.get(API_ENDPOINTS.WEDDING_MEMORIES.GET_BY_USER, {
-      headers: {
-        Authorization: userToken
-      }
-    })
+    const response = await api.get(API_ENDPOINTS.WEDDING_MEMORY_DATA.GET_BY_PRODUCT_ID(route.params.id))
 
     femaleName.value = response.data.femaleName
     maleName.value = response.data.maleName
     date.value = response.data.date
 
   } catch (error) {
+    toast.error('Kayıtlara ulaşılamadı!')
     console.error('Get Wedding Memories Error : ', error)
   } finally {
     metaFetched.value = true
@@ -223,7 +164,7 @@ const fetchDriveFiles = async () => {
     const api = axios.create({
       baseURL: import.meta.env.VITE_API_BASE_URL
     })
-    const driveApplicationFolderIdResponse = await api.get(API_ENDPOINTS.USERS.GET_DRIVE_APPLICATION_FOLDER_ID(route.params.id))
+    const driveApplicationFolderIdResponse = await api.get(API_ENDPOINTS.USER_PRODUCT.GET_BY_ID(route.params.id))
 
     const driveApplicationFolderId = driveApplicationFolderIdResponse.data.driveApplicationFolderId
 
@@ -305,6 +246,8 @@ const fetchDriveFiles = async () => {
 
 
   } catch (err) {
+    toast.error('Kayıtlara ulaşılamadı!')
+
     console.error('Drive dosya çekme hatası:', err)
     memoriesData.hero.image = null
   } finally {
@@ -316,27 +259,39 @@ const fetchDriveFiles = async () => {
 onMounted(async () => {
 
   if (route.path.startsWith('/upload/')) {
-    const savedToken = localStorage.getItem('userToken')
-    if (savedToken) {
+    try {
       const api = axios.create({
-        baseURL: import.meta.env.VITE_API_BASE_URL
+        baseURL: import.meta.env.VITE_API_BASE_URL,
+        withCredentials: true
       })
-      const response = await api.post(API_ENDPOINTS.USER_AUTH.VALIDATE_TOKEN, { token: savedToken })
-      if (response.data.valid) {
-        token.value = savedToken
-        showPasswordCheck.value = false
+      const id = route.params.id
+      const response = await api.put(API_ENDPOINTS.USER_PRODUCT.CLAIM_PRODUCT(id))
+      console.log('Claim Product Response : ', response)
+      if (response.data.folder_id !== '') {
         await fetchDriveFiles()
         await fetchHeroMeta()
+        saveLoading.value = false
+
+      } else {
+        await fetchHeroMeta()
+        driveFilesFetched.value = true
+        saveLoading.value = false
+
       }
+
+    } catch (error) {
+      console.error('Claim Product Error : ', error)
+      router.push({ name: 'NotFound' })
     }
+
     editable.value = true
+
+
   } else if (route.path.startsWith('/show/')) {
-    showPasswordCheck.value = false
     await fetchDriveFiles()
     await fetchHeroMeta()
     editable.value = false
   }
-
 
 })
 

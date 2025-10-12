@@ -27,7 +27,6 @@
           </transition>
         </div>
         <h1 class="app-title">{{ appTitle }}</h1>
-        <p class="app-subtitle">{{ appSubtitle }}</p>
       </div>
 
       <!-- Google Giriş Butonu -->
@@ -58,7 +57,6 @@ const logoIcon = ref('✨')
 
 // App bilgileri
 const appTitle = ref('Hoş Geldiniz')
-const appSubtitle = ref('Hesabınıza giriş yapın')
 
 // Floating shapes & light beams
 const floatingShapes = reactive(Array(4).fill({}))
@@ -75,7 +73,6 @@ const logoAnimation = () => {
 // Backend-mediated Google login
 const loginWithGoogle = () => {
   isLoading.value = true
-  console.log('Google login',import.meta.env.VITE_API_BASE_URL)
   window.location.href = `${import.meta.env.VITE_API_BASE_URL}${API_ENDPOINTS.GOOGLE_AUTH.GOOGLE}`;
 
 }

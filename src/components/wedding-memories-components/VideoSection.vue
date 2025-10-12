@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import evlilikVideo from '../../assets/say_yes.mp4'
 
 interface Video {
@@ -23,8 +23,13 @@ const isPlaying = ref(false)
 const videoFile = ref<Video>({
   id: props.video?.id || '4',
   name: props.video?.name || 'video',
-  url: props.video?.url || evlilikVideo
-})
+  url: props.editable
+    ? (props.video?.url || evlilikVideo)  // editable → default evlilikVideo
+    : (props.video?.url || null)          // readonly → default null
+});
+
+
+
 const showModal = ref(false)
 const switchVideoVisible = ref(true)
 // Editable title
@@ -125,13 +130,35 @@ function selectAllText(element: HTMLElement) {
     selection.addRange(range)
   }
 }
+
+const showVideoControls = computed(() => props.editable);
+
+const showVideoHeader = computed(() => {
+  return (props.editable && switchVideoVisible.value) ||
+    (!props.editable && !!videoFile.value?.url);
+});
+
+const showVideoPlayer = computed(() => {
+  return (props.editable && switchVideoVisible.value && !!videoFile.value?.url) ||
+    (!props.editable && !!videoFile.value?.url);
+});
+
+const showUploadArea = computed(() => {
+  return props.editable && switchVideoVisible.value && !videoFile.value?.url;
+});
+
+const showVideoModal = computed(() => {
+  return switchVideoVisible.value && showModal.value;
+});
+
+
 </script>
 
 <template>
   <div class="video-section">
 
     <!-- Video görünürlük kontrolü -->
-    <div v-if="props.editable" class="video-controls">
+    <div v-if="showVideoControls" class="video-controls">
       <div class="control-item">
         <label class="control-label">
           <input
@@ -144,7 +171,7 @@ function selectAllText(element: HTMLElement) {
       </div>
     </div>
 
-    <div v-if="switchVideoVisible" class="video-header">
+    <div  v-if="showVideoHeader" class="video-header">
       <h2 class="editable" @click="props.editable ? editTitle : null"
           @blur="props.editable ? saveTitle : null"
           @keydown.enter="props.editable ? saveTitle : null"
@@ -154,7 +181,8 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video oynatıcı -->
-    <div v-if="videoFile && switchVideoVisible" class="video-wrapper">
+    <div   v-if="showVideoPlayer"
+           class="video-wrapper">
       <video class="video-player" :src="videoFile.url" @ended="onVideoEnded"
              @play="isPlaying = true"
              @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
@@ -174,7 +202,7 @@ function selectAllText(element: HTMLElement) {
     </div>
 
     <!-- Video yükleme alanı -->
-    <div v-if="switchVideoVisible && !videoFile" class="video-upload-area"
+    <div v-if="showUploadArea" class="video-upload-area"
          @click="triggerVideoUpload">
       <div class="upload-content">
         <div class="upload-icon">+</div>
@@ -188,7 +216,7 @@ function selectAllText(element: HTMLElement) {
 
 
     <!-- Video modal -->
-    <div v-if="showModal && switchVideoVisible" class="video-modal" @click="closeVideoModal">
+    <div v-if="showVideoModal" class="video-modal" @click="closeVideoModal">
       <div class="modal-content" @click.stop>
         <button class="close-btn" @click="closeVideoModal">&times;</button>
         <video class="modal-video" :src="videoFile" controls autoplay>
