@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import evlilikVideo from '../../assets/say_yes.mp4'
 
 interface Video {
@@ -12,30 +12,69 @@ const props = defineProps<{
   editable: boolean, video: Video | null
 }>()
 
-
 const emit = defineEmits(['update:video'])
+
+const videoRef = ref(null)
+const videoFile = ref<Video>({
+  id: props.video?.id || '4',
+  name: props.video?.name || 'video',
+  url: props.video?.url || (props.editable ? evlilikVideo : null)
+})
+
+// Props değiştiğinde videoFile'ı güncelle
+watch(() => [props.video, props.editable], async ([newVideo, editable]) => {
+  if (newVideo && newVideo.url) {
+    // URL'den ID'yi çıkar
+    const videoId = newVideo.url.split('/').pop()?.split('?')[0]
+
+    if (videoId) {
+      // Yeni URL oluştur
+      const videoUrl = `http://localhost:8080/api/drive/video/${videoId}`
+
+      videoFile.value = {
+        id: newVideo.id || '4',
+        name: newVideo.name || 'video',
+        url: videoUrl
+      }
+    } else {
+      // ID çıkarılamazsa orijinal URL'i kullan
+      videoFile.value = {
+        id: newVideo.id || '4',
+        name: newVideo.name || 'video',
+        url: newVideo.url
+      }
+    }
+  } else if (editable) {
+    videoFile.value = {
+      id: '4',
+      name: 'video',
+      url: evlilikVideo
+    }
+  } else {
+    videoFile.value = {
+      id: '4',
+      name: 'video',
+      url: null
+    }
+  }
+}, { immediate: true })
+
+
+const switchVideoVisible = ref(true)
+const title = ref('Ölümsüz An')
+const isEditingTitle = ref(false)
+const titleRef = ref(null)
+
+// Three dots menu state
+const showMenu = ref(false)
+const menuPosition = ref({ x: 0, y: 0 })
+
 const emitVideo = () => {
   emit('update:video', videoFile.value)
 }
 
-const videoRef = ref(null)
-const isPlaying = ref(false)
-const videoFile = ref<Video>({
-  id: props.video?.id || '4',
-  name: props.video?.name || 'video',
-  url: props.editable
-    ? (props.video?.url || evlilikVideo)  // editable → default evlilikVideo
-    : (props.video?.url || null)          // readonly → default null
-});
-
-
-
-const showModal = ref(false)
-const switchVideoVisible = ref(true)
-// Editable title
-const title = ref('Ölümsüz An')
-const isEditingTitle = ref(false)
-const titleRef = ref(null)
+// Debug için
+console.log('VideoSection - props.editable:', props.editable)
 
 
 function handleVideoUpload(event: any) {
@@ -59,43 +98,40 @@ function triggerVideoUpload() {
   }
 }
 
-function togglePlay() {
-  const video = document.querySelector('.video-player') as HTMLVideoElement
-  if (video) {
-    if (isPlaying.value) {
-      video.pause()
-    } else {
-      video.play()
-    }
-    isPlaying.value = !isPlaying.value
-  }
-}
-
 function onVideoEnded() {
-  isPlaying.value = false
-}
-
-function openVideoModal() {
-  showModal.value = true
-}
-
-function closeVideoModal() {
-  showModal.value = false
+  // Video ended handler
 }
 
 function removeVideo() {
-  videoFile.value = null
+  videoFile.value = {
+    id: '4',
+    name: 'video',
+    url: null
+  }
   emitVideo()
-  showModal.value = false
+  showMenu.value = false
 }
 
-function handleVideoClick(event: Event) {
-  // Sadece mobilde modal aç
-  if (window.innerWidth <= 768) {
-    event.preventDefault()
-    openVideoModal()
+// Three dots menu functions
+function toggleMenu(event) {
+  event.stopPropagation()
+  showMenu.value = !showMenu.value
+  if (showMenu.value) {
+    // Menüyü üç nokta butonunun sol altında konumlandır
+    const buttonRect = event.target.getBoundingClientRect()
+    const menuWidth = 150
+    const menuHeight = 50
+    menuPosition.value = {
+      x: buttonRect.left - menuWidth + 20, // Sol alt
+      y: buttonRect.bottom + 15 // Daha fazla boşluk ile altında
+    }
   }
 }
+
+function closeMenu() {
+  showMenu.value = false
+}
+
 
 // Title editing functions
 function editTitle() {
@@ -131,32 +167,40 @@ function selectAllText(element: HTMLElement) {
   }
 }
 
-const showVideoControls = computed(() => props.editable);
+const showVideoControls = computed(() => props.editable)
 
 const showVideoHeader = computed(() => {
-  return (props.editable && switchVideoVisible.value) ||
-    (!props.editable && !!videoFile.value?.url);
-});
+  return (props.editable && switchVideoVisible.value) || (!props.editable && !!videoFile.value?.url)
+})
 
 const showVideoPlayer = computed(() => {
-  return (props.editable && switchVideoVisible.value && !!videoFile.value?.url) ||
-    (!props.editable && !!videoFile.value?.url);
-});
+  return switchVideoVisible.value && !!videoFile.value?.url
+})
 
 const showUploadArea = computed(() => {
-  return props.editable && switchVideoVisible.value && !videoFile.value?.url;
-});
+  return props.editable && switchVideoVisible.value && !videoFile.value?.url
+})
 
-const showVideoModal = computed(() => {
-  return switchVideoVisible.value && showModal.value;
-});
+
+// Menü dışında tıklayınca kapat
+onMounted(() => {
+  document.addEventListener('click', (event) => {
+    // Menü dışında herhangi bir yere tıklayınca kapat
+    if (showMenu.value && !event.target.closest('.dropdown-menu') && !event.target.closest('.three-dots-btn')) {
+      closeMenu()
+    }
+  })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu)
+})
 
 
 </script>
 
 <template>
   <div class="video-section">
-
     <!-- Video görünürlük kontrolü -->
     <div v-if="showVideoControls" class="video-controls">
       <div class="control-item">
@@ -171,39 +215,47 @@ const showVideoModal = computed(() => {
       </div>
     </div>
 
-    <div  v-if="showVideoHeader" class="video-header">
+    <div v-if="showVideoHeader" class="video-header">
       <h2 class="editable" @click="props.editable ? editTitle : null"
           @blur="props.editable ? saveTitle : null"
           @keydown.enter="props.editable ? saveTitle : null"
           :contenteditable="props.editable ? isEditingTitle : null"
           ref="titleRef">{{ title }}</h2>
-
     </div>
 
     <!-- Video oynatıcı -->
-    <div   v-if="showVideoPlayer"
-           class="video-wrapper">
+    <div v-if="showVideoPlayer" class="video-wrapper">
       <video class="video-player" :src="videoFile.url" @ended="onVideoEnded"
-             @play="isPlaying = true"
-             @pause="isPlaying = false" controls preload="metadata" @click="handleVideoClick">
+             controls preload="metadata">
         Tarayıcınız video oynatmayı desteklemiyor.
       </video>
 
-      <!-- Video silme butonu -->
-      <button class="remove-btn" @click="removeVideo" title="Videoyu sil" v-if="props.editable">
-
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      <!-- Three dots menu button - video player üstünde -->
+      <button class="three-dots-btn"
+              @click="toggleMenu"
+              v-if="props.editable === true"
+              title="Seçenekler">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
              xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" />
+          <circle cx="12" cy="5" r="1" fill="currentColor" />
+          <circle cx="12" cy="19" r="1" fill="currentColor" />
         </svg>
       </button>
+
+      <!-- Dropdown menu -->
+      <div v-if="showMenu"
+           class="dropdown-menu"
+           :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }"
+           @click.stop>
+        <button class="delete-btn" @click="removeVideo">
+          Videoyu sil
+        </button>
+      </div>
     </div>
 
     <!-- Video yükleme alanı -->
-    <div v-if="showUploadArea" class="video-upload-area"
-         @click="triggerVideoUpload">
+    <div v-if="showUploadArea" class="video-upload-area" @click="triggerVideoUpload">
       <div class="upload-content">
         <div class="upload-icon">+</div>
         <div class="upload-text">Video Yükle</div>
@@ -214,21 +266,10 @@ const showVideoModal = computed(() => {
     <input type="file" ref="videoRef" @change="handleVideoUpload" accept="video/*"
            style="display: none;" />
 
-
-    <!-- Video modal -->
-    <div v-if="showVideoModal" class="video-modal" @click="closeVideoModal">
-      <div class="modal-content" @click.stop>
-        <button class="close-btn" @click="closeVideoModal">&times;</button>
-        <video class="modal-video" :src="videoFile" controls autoplay>
-          Tarayıcınız video oynatmayı desteklemiyor.
-        </video>
-      </div>
-    </div>
   </div>
 </template>
 
 <style scoped>
-
 .video-section {
   background: transparent;
   display: flex;
@@ -280,45 +321,64 @@ const showVideoModal = computed(() => {
   margin: 0;
 }
 
-.remove-btn {
+/* Three dots menu button */
+.three-dots-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: var(--size-xl);
-  height: var(--size-xl);
-  background: var(--bg-white);
-  color: var(--color-danger);
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 18px;
-  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: var(--transition-normal) var(--ease-in-out);
-  z-index: var(--z-tooltip);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-.video-wrapper:hover .remove-btn {
-  opacity: 1;
-}
-
-.remove-btn:hover {
-  background: var(--color-danger);
+.three-dots-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
   transform: scale(1.1);
 }
 
-.remove-btn:hover svg {
-  stroke: white;
+/* Dropdown menu */
+.dropdown-menu {
+  position: fixed;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  min-width: 150px;
+  overflow: hidden;
 }
 
-.remove-btn svg {
-  width: var(--size-md);
-  height: var(--size-md);
-  stroke: var(--color-danger);
+.delete-btn {
+  width: calc(100% - 16px);
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 8px;
+  border-radius: 4px;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+  color: white;
 }
 
 .video-player {
@@ -392,12 +452,9 @@ const showVideoModal = computed(() => {
 }
 
 @keyframes pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
-
   50% {
     transform: scale(1.1);
   }

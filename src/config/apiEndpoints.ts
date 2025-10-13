@@ -2,7 +2,8 @@ export const API_ENDPOINTS = {
   DRIVE: {
     UPLOAD_FILE: '/drive/upload',
     GET_FILES: (folderId) => `/drive/files?folderId=${folderId}`,
-    DELETE_FILE: (fileId) => `/drive/files/${fileId}`
+    DELETE_FILE: (fileId) => `/drive/files/${fileId}`,
+    DELETE_FILE_BY_NAME: (fileName) => `/drive/files/by-name/${fileName}`
   },
   GOOGLE_AUTH: {
     GOOGLE: '/google-auth/google',

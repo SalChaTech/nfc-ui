@@ -67,7 +67,15 @@ const hasNames = computed(() => {
   const names = props.memoriesData?.hero?.names;
   return names?.first?.trim() || names?.second?.trim();
 });
+const deleteVideoFileFromDrive = async () => {
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    withCredentials: true
+  })
 
+  const response = await api.delete(API_ENDPOINTS.DRIVE.DELETE_FILE_BY_NAME("video.mp4"))
+  console.log(response)
+}
 
 const uploadFileToDrive = async (file: Photo | Video, toSubfolder = false) => {
   if (!file || !file.url) return
@@ -158,8 +166,13 @@ const uploadChanges = async () => {
 
     // Wedding video
     if (props.memoriesData.weddingVideo) {
-      const response = await uploadFileToDrive(props.memoriesData.weddingVideo)
-      applicationFolderId.value = response.folderId
+      if (props.memoriesData.weddingVideo.url==null || props.memoriesData.weddingVideo.url=="") {
+        const response = await deleteVideoFileFromDrive()
+      }else {
+        const response = await uploadFileToDrive(props.memoriesData.weddingVideo)
+        applicationFolderId.value = response.folderId
+      }
+
     }
 
     // Added common gallery (opsiyonel subfolder)
@@ -202,7 +215,7 @@ const uploadChanges = async () => {
     toast.info('Yükleme işlemi başarılı!')
 
   } catch (error) {
-    toast.error('Yükleme işlemi başarısız!\n'+error.response.data.message)
+    toast.error('Yükleme işlemi başarısız!\n'+error.response?.data?.message)
     console.error('Yükleme hatası:', error)
 
   } finally {
